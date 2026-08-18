@@ -39,6 +39,34 @@ const icons = {
       <path d="m19 16 .7 2.3L22 19l-2.3.7L19 22l-.7-2.3L16 19l2.3-.7L19 16Z" />
     </>
   ),
+  cards: (
+    <>
+      <rect x="4" y="3" width="14" height="17" rx="2" />
+      <path d="M8 7h6M8 11h6M20 7v12a2 2 0 0 1-2 2H8" />
+    </>
+  ),
+  quiz: (
+    <>
+      <path d="M9.2 9a3 3 0 1 1 4.7 2.5c-1.1.7-1.9 1.2-1.9 2.5" />
+      <path d="M12 18h.01" />
+      <circle cx="12" cy="12" r="10" />
+    </>
+  ),
+  progress: (
+    <>
+      <path d="M4 20V10M10 20V4M16 20v-7M22 20V7" />
+      <path d="M2 20h22" />
+    </>
+  ),
+  shuffle: (
+    <>
+      <path d="M16 3h5v5" />
+      <path d="M4 20 21 3" />
+      <path d="M21 16v5h-5" />
+      <path d="m15 15 6 6" />
+      <path d="m4 4 5 5" />
+    </>
+  ),
 };
 
 export default function AppIcon({ name, size = 22, className = '' }) {

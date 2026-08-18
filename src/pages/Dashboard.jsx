@@ -48,7 +48,7 @@ export default function Dashboard() {
       {!profile?.learning_language_id && !error && (
         <div className="notice">
           <strong>Choose your learning language.</strong>
-          <span>Open Settings to select Spanish or Japanese before starting.</span>
+          <span>Open Settings to select one of the available courses before starting.</span>
           <Link to="/settings">Open settings</Link>
         </div>
       )}
@@ -69,7 +69,7 @@ export default function Dashboard() {
             </div>
             {nextUnit && (
               <Link to={`/lessons/${nextUnit.id}`} className="button button--light">
-                {courseProgress.completedCards > 0 ? 'Continue unit' : 'Start unit'}
+                {courseProgress.completedCards > 0 ? 'Open unit' : 'Start unit'}
                 <AppIcon name="arrow" size={18} />
               </Link>
             )}
@@ -115,7 +115,7 @@ export default function Dashboard() {
                         <div className="unit-card__footer">
                           <span>{progress.isComplete ? 'Unit complete' : `${progress.percent}% complete`}</span>
                           <Link to={`/lessons/${unit.id}`} className="button button--outline button--small">
-                            {progress.completed > 0 ? 'Review' : 'Start'}
+                            {progress.completed > 0 ? 'Practise' : 'Start'}
                             <AppIcon name="arrow" size={16} />
                           </Link>
                         </div>

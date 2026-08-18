@@ -13,6 +13,7 @@ const Signup = lazy(() => import('./pages/Signup.jsx'));
 const Dashboard = lazy(() => import('./pages/Dashboard.jsx'));
 const Settings = lazy(() => import('./pages/Settings.jsx'));
 const Lesson = lazy(() => import('./pages/Lesson.jsx'));
+const Progress = lazy(() => import('./pages/Progress.jsx'));
 
 function NotFound() {
   return (
@@ -81,6 +82,14 @@ function AppFrame() {
               element={
                 <ProtectedRoute>
                   <Settings />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/progress"
+              element={
+                <ProtectedRoute>
+                  <Progress />
                 </ProtectedRoute>
               }
             />

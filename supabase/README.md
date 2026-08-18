@@ -41,6 +41,12 @@ units. It uses explicit browser-role grants as well as RLS, so the curriculum
 is readable while profiles and progress remain owner-only. Apply migrations
 before deploying React code that expects the new profile columns.
 
+The Week 5 flashcard and quiz update reuses the existing `progress` table and
+does not add a migration. Both activity types upsert on the existing unique
+`(user_id, concept_id)` index. A correct quiz answer or a "Got it" flashcard
+therefore completes a concept once, while repeated practice safely updates the
+same owner-protected row.
+
 ## Adding another migration
 
 ```bash

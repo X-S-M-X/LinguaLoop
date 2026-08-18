@@ -1,10 +1,10 @@
 # LinguaLoop
 
 LinguaLoop is a React, Vite, and Supabase language-learning application built
-as a 15-week project. This repository currently contains the
-foundation plus its first complete learning loop: authentication, protected
-routes, profiles, avatar storage, flashcards, saved progress, database
-migrations, and GitHub Pages deployment.
+as a 15-week university project. This repository currently contains the
+foundation plus two complete learning activities: authentication, protected
+routes, profiles, avatar storage, improved flashcards, multiple-choice quizzes,
+saved progress, database migrations, and GitHub Pages deployment.
 
 ## Local setup
 
@@ -124,12 +124,18 @@ Built:
 - Responsive learning dashboard and learning path
 - Profile, avatar, learning language, daily goal, and romanisation settings
 - Spanish and Japanese flashcard units
+- Shuffle, restart, missed-card review, and clear flashcard session summaries
+- Multiple-choice practice generated from each unit's existing translations
 - Per-card completion saved through RLS-protected progress rows
 - Real card, unit, and course completion counts
+- Dedicated responsive Progress page and navigation item
 - Read-only curriculum data for browser clients
+- Language-neutral lesson helpers shared by every activity
 
 Planned:
 
 - More units and fuller multi-language course management
-- Spaced review and richer practice types
+- Browser text-to-speech with device-voice fallback
+- A bounded authenticated "Explain this card" action through a Supabase Edge Function
+- Typed-answer and spaced-review practice after the Week 6 proof of concept
 - Streaks and points after their rules and data model are designed

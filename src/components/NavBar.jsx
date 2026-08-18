@@ -43,6 +43,7 @@ export default function NavBar() {
 
   const navItems = [
     { to: '/dashboard', label: 'Learn', icon: 'learn' },
+    { to: '/progress', label: 'Progress', icon: 'progress' },
     { to: '/settings', label: 'Settings', icon: 'settings' },
   ];
 
