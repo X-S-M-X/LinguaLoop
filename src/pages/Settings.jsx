@@ -8,6 +8,11 @@ import {
   isValidUsername,
   normalizeUsername,
 } from '../lib/profileHelpers.js';
+import {
+  isSpeechRecognitionSupported,
+  isSpeechSynthesisSupported,
+  SPEECH_RATE_OPTIONS,
+} from '../lib/speechHelpers.js';
 
 const DAILY_GOALS = [5, 10, 15, 20];
 
@@ -22,6 +27,8 @@ export default function Settings() {
   const [learningLanguageId, setLearningLanguageId] = useState('');
   const [dailyGoalMinutes, setDailyGoalMinutes] = useState(10);
   const [showRomanization, setShowRomanization] = useState(true);
+  const [autoplayTts, setAutoplayTts] = useState(false);
+  const [speechRate, setSpeechRate] = useState(1);
   const [languages, setLanguages] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -37,6 +44,8 @@ export default function Settings() {
       setLearningLanguageId(profile.learning_language_id || '');
       setDailyGoalMinutes(profile.daily_goal_minutes ?? 10);
       setShowRomanization(profile.show_romanization ?? true);
+      setAutoplayTts(profile.autoplay_tts ?? false);
+      setSpeechRate(Number(profile.speech_rate ?? 1));
     }
 
     if (user?.email) setEmail(user.email);
@@ -127,7 +136,7 @@ export default function Settings() {
 
     if (!isValidUsername(normalizedUsername)) {
       setSaving(false);
-      setError('Use 3–30 characters. Start with a letter or number, then use letters, numbers, dots, dashes, or underscores.');
+      setError('Use 3 to 30 characters. Start with a letter or number, then use letters, numbers, dots, dashes, or underscores.');
       return;
     }
 
@@ -173,6 +182,8 @@ export default function Settings() {
       learning_language_id: learningLanguageId,
       daily_goal_minutes: Number(dailyGoalMinutes),
       show_romanization: showRomanization,
+      autoplay_tts: autoplayTts,
+      speech_rate: Number(speechRate),
       username: normalizedUsername,
     };
 
@@ -260,7 +271,7 @@ export default function Settings() {
                 minLength={3}
                 maxLength={30}
                 pattern="[A-Za-z0-9][A-Za-z0-9._-]{2,29}"
-                title="3–30 characters; start with a letter or number"
+                title="3 to 30 characters; start with a letter or number"
                 autoComplete="username"
                 required
               />
@@ -332,8 +343,8 @@ export default function Settings() {
 
           <label className="toggle-row">
             <span>
-              <strong>Show Japanese romanisation</strong>
-              <small>Display Latin pronunciation hints below Japanese answers.</small>
+              <strong>Show pronunciation hints</strong>
+              <small>Display Latin pronunciation hints when the lesson provides them.</small>
             </span>
             <input
               type="checkbox"
@@ -341,6 +352,61 @@ export default function Settings() {
               onChange={(event) => setShowRomanization(event.target.checked)}
             />
           </label>
+        </section>
+
+        <section className="settings-panel" aria-labelledby="audio-settings-title">
+          <div className="settings-panel__heading">
+            <span className="settings-panel__icon settings-panel__icon--gold">
+              <AppIcon name="speaker" />
+            </span>
+            <div>
+              <h2 id="audio-settings-title">Audio and speaking</h2>
+              <p>Control how LinguaLoop reads lesson answers aloud.</p>
+            </div>
+          </div>
+
+          <div className="settings-grid">
+            <label>
+              Speech speed
+              <select
+                value={speechRate}
+                onChange={(event) => setSpeechRate(Number(event.target.value))}
+              >
+                {SPEECH_RATE_OPTIONS.map((rate) => (
+                  <option key={rate} value={rate}>
+                    {rate === 0.75 ? 'Slower' : rate === 1 ? 'Normal' : 'Faster'} ({rate}x)
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+
+          <label className="toggle-row">
+            <span>
+              <strong>Automatically speak answers</strong>
+              <small>Play the learning-language text when it becomes visible.</small>
+            </span>
+            <input
+              type="checkbox"
+              checked={autoplayTts}
+              onChange={(event) => setAutoplayTts(event.target.checked)}
+            />
+          </label>
+
+          <div className="browser-support" aria-label="Browser speech support">
+            <span className={isSpeechSynthesisSupported() ? 'is-supported' : 'is-unsupported'}>
+              <AppIcon name={isSpeechSynthesisSupported() ? 'check' : 'speaker'} size={16} />
+              Text to speech {isSpeechSynthesisSupported() ? 'available' : 'unavailable'}
+            </span>
+            <span className={isSpeechRecognitionSupported() ? 'is-supported' : 'is-unsupported'}>
+              <AppIcon name={isSpeechRecognitionSupported() ? 'check' : 'mic'} size={16} />
+              Microphone matching {isSpeechRecognitionSupported() ? 'available' : 'unavailable'}
+            </span>
+          </div>
+          <p className="settings-privacy-note">
+            Microphone access is requested only when you start speaking practice. Your browser
+            or its speech service processes recognition. LinguaLoop does not upload or store audio.
+          </p>
         </section>
 
         <div className="settings-savebar">

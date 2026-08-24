@@ -2037,6 +2037,292 @@ a:hover {
   font-size: 0.85rem;
 }
 
+.activity-card--gold {
+  border-color: #f0d9a1;
+}
+
+.activity-card--gold:hover {
+  border-color: var(--gold);
+}
+
+.activity-card--gold .activity-card__icon,
+.settings-panel__icon--gold {
+  background: #fff5d8;
+  color: #9a6700;
+}
+
+.browser-support {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin-top: 20px;
+}
+
+.browser-support span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 7px 11px;
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.browser-support .is-supported {
+  border-color: #bfe5d6;
+  background: var(--accent-soft);
+  color: var(--accent-dark);
+}
+
+.browser-support .is-unsupported {
+  border-color: #ead8b1;
+  background: #fff8e7;
+  color: #805d13;
+}
+
+.settings-privacy-note {
+  margin: 14px 0 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.flashcard-setup-heading {
+  max-width: 680px;
+  margin-inline: auto;
+}
+
+.flashcard-setup-heading > p:last-child {
+  margin: 12px 0 0;
+  color: var(--muted);
+}
+
+.flashcard-setup-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.choice-panel {
+  min-width: 0;
+  margin: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.choice-panel--wide {
+  grid-column: 1 / -1;
+}
+
+.choice-panel legend {
+  padding: 0 6px;
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-weight: 800;
+}
+
+.choice-panel small {
+  display: block;
+  margin-top: 12px;
+  color: var(--muted);
+  font-size: 0.76rem;
+}
+
+.segmented-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.segmented-options button {
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  padding: 9px 13px;
+  background: var(--surface-soft);
+  color: var(--muted);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.segmented-options button:hover,
+.segmented-options button.is-selected {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-dark);
+}
+
+.flashcard-listen {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 8px;
+  border: 1px solid #bfe5d6;
+  border-radius: 999px;
+  padding: 8px 13px;
+  background: var(--accent-soft);
+  color: var(--accent-dark);
+  font-size: 0.8rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.flashcard-listen:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.speak-card {
+  display: grid;
+  place-items: center;
+  gap: 8px;
+  border: 2px solid #f0d9a1;
+  border-bottom-width: 6px;
+  border-radius: var(--radius-lg);
+  padding: clamp(28px, 7vw, 54px) 24px;
+  background: linear-gradient(180deg, #fff 0%, #fffbef 100%);
+  text-align: center;
+  box-shadow: var(--shadow-sm);
+}
+
+.speak-card > span,
+.speech-transcript span {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.speak-card p {
+  margin: 0 0 12px;
+  color: var(--muted);
+  font-size: 1rem;
+}
+
+.speak-card > strong {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 7vw, 4.2rem);
+  line-height: 1.15;
+}
+
+.speak-card > strong:lang(ja) {
+  font-family: system-ui, sans-serif;
+  letter-spacing: 0;
+}
+
+.speak-card > small {
+  color: var(--muted);
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.speak-listen-button {
+  margin-top: 16px;
+}
+
+.speech-controls,
+.speech-fallback {
+  margin-top: 22px;
+}
+
+.speech-controls {
+  display: grid;
+  place-items: center;
+  gap: 14px;
+}
+
+.microphone-button--listening {
+  animation: microphone-pulse 1.25s ease-in-out infinite;
+}
+
+.speech-transcript {
+  width: min(100%, 620px);
+  display: grid;
+  gap: 5px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 14px 18px;
+  background: var(--surface);
+  text-align: center;
+}
+
+.speech-transcript strong {
+  font-size: 1.05rem;
+}
+
+.speech-result {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  border: 1px solid #bfe5d6;
+  border-radius: var(--radius);
+  padding: 20px;
+  background: var(--accent-soft);
+}
+
+.speech-result--almost {
+  border-color: #ead8b1;
+  background: #fff8e7;
+}
+
+.speech-result--try-again {
+  border-color: #efcaca;
+  background: var(--danger-soft);
+}
+
+.speech-result > div:first-child,
+.speech-result strong,
+.speech-result span {
+  display: block;
+}
+
+.speech-result span {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.speech-result__actions {
+  display: flex;
+  gap: 9px;
+  flex: 0 0 auto;
+}
+
+.speech-fallback {
+  border: 1px solid #ead8b1;
+  border-radius: var(--radius);
+  padding: 20px;
+  background: #fff8e7;
+  text-align: center;
+}
+
+.speech-fallback p {
+  max-width: 620px;
+  margin: 6px auto 16px;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+@keyframes microphone-pulse {
+  0%,
+  100% {
+    box-shadow: 0 4px 0 var(--accent-dark), 0 0 0 0 rgba(21, 155, 114, 0.18);
+  }
+  50% {
+    box-shadow: 0 4px 0 var(--accent-dark), 0 0 0 12px rgba(21, 155, 114, 0);
+  }
+}
+
 @media (max-width: 1100px) {
   :root {
     --sidebar-width: 220px;
@@ -2322,6 +2608,32 @@ a:hover {
   .flashcard {
     min-height: 285px;
     padding: 34px 22px;
+  }
+
+  .flashcard-setup-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .choice-panel--wide {
+    grid-column: auto;
+  }
+
+  .segmented-options {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .speech-result {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .speech-result__actions {
+    display: grid;
+  }
+
+  .speech-result__actions .button {
+    width: 100%;
   }
 
   .lesson-actions {

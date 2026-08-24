@@ -47,6 +47,17 @@ does not add a migration. Both activity types upsert on the existing unique
 therefore completes a concept once, while repeated practice safely updates the
 same owner-protected row.
 
+The Week 6 migration expands both current courses from 10 to 15 cards, adds
+language speech locales, adds saved TTS preferences, and marks which concepts
+are suitable for microphone phrase matching. It keeps the existing Japanese
+`あ` concept ID, so already-saved progress remains attached to the same card.
+The migration does not create a new public table or weaken any RLS policy.
+
+For another learning language, add a `languages` row with a BCP 47
+`speech_locale`, then add its unit, concepts, English translations, and target
+translations in a new migration. Set `concepts.speech_practice_enabled` only
+for complete words or phrases that are suitable for browser recognition.
+
 ## Adding another migration
 
 ```bash

@@ -2,9 +2,9 @@
 
 LinguaLoop is a React, Vite, and Supabase language-learning application built
 as a 15-week university project. This repository currently contains the
-foundation plus two complete learning activities: authentication, protected
-routes, profiles, avatar storage, improved flashcards, multiple-choice quizzes,
-saved progress, database migrations, and GitHub Pages deployment.
+foundation plus three learning activities: authentication, protected routes,
+profiles, avatar storage, configurable flashcards, multiple-choice quizzes,
+speaking practice, saved progress, database migrations, and GitHub Pages deployment.
 
 ## Local setup
 
@@ -50,8 +50,9 @@ The migrations:
 - creates a profile from an `auth.users` trigger;
 - preserves username metadata even while email confirmation is pending;
 - limits avatar writes to each user's folder and restricts upload type/size.
-- add learning-language, daily-goal, and romanisation preferences;
-- seed one Spanish greetings unit and one Japanese hiragana unit;
+- add learning-language, daily-goal, pronunciation, and speech preferences;
+- seed 15-card Spanish greetings and Japanese foundations units;
+- store a BCP 47 speech locale for each language;
 - enforce stable unit/card ordering and safe progress upserts.
 
 The Auth trigger is important: with confirmation enabled, Supabase returns a
@@ -105,6 +106,17 @@ npm run build
 `npm run check` runs both commands. The deployment workflow refuses to build
 when either Supabase repository secret is missing.
 
+## Browser speech support
+
+Flashcards use the browser Web Speech synthesis API and do not need an external
+API key. Speak and Repeat uses `SpeechRecognition` when the browser provides it,
+with a listen-only fallback everywhere else. Chrome and Edge are the recommended
+demonstration browsers for microphone matching.
+
+Microphone access is requested only after the learner presses the button.
+LinguaLoop does not upload or store microphone audio or recognised transcripts.
+The browser or its speech provider may still process recognition.
+
 ### Dependency audit note
 
 The project uses Vite 8 and React Router 7.18 to remove the older Vite
@@ -122,10 +134,13 @@ Built:
 - Signup, email confirmation, login, and logout
 - Authenticated users are redirected from public routes to their dashboard
 - Responsive learning dashboard and learning path
-- Profile, avatar, learning language, daily goal, and romanisation settings
-- Spanish and Japanese flashcard units
-- Shuffle, restart, missed-card review, and clear flashcard session summaries
+- Profile, avatar, learning language, daily goal, pronunciation, and audio settings
+- Fifteen-card Spanish and Japanese foundations units
+- Japanese cards ordered as 10 useful phrases followed by 5 introductory hiragana
+- Flashcard deck filters, 5/10/15-card rounds, direction swapping, TTS, and missed-card review
 - Multiple-choice practice generated from each unit's existing translations
+- Speak and Repeat practice with browser microphone matching and listen-only fallback
+- Browser TTS shared by flashcards and speaking activities
 - Per-card completion saved through RLS-protected progress rows
 - Real card, unit, and course completion counts
 - Dedicated responsive Progress page and navigation item
@@ -134,8 +149,9 @@ Built:
 
 Planned:
 
-- More units and fuller multi-language course management
-- Browser text-to-speech with device-voice fallback
+- A third language after its first 15-card curriculum is reviewed
+- Performance-history data for deterministic adaptive difficulty
 - A bounded authenticated "Explain this card" action through a Supabase Edge Function
-- Typed-answer and spaced-review practice after the Week 6 proof of concept
+- AI-assisted question variations only after verified curriculum safeguards are in place
+- Typed-answer and spaced-review practice
 - Streaks and points after their rules and data model are designed

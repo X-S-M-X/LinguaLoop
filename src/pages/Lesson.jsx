@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import ActivityPicker from '../components/learning/ActivityPicker.jsx';
 import FlashcardActivity from '../components/learning/FlashcardActivity.jsx';
 import QuizActivity from '../components/learning/QuizActivity.jsx';
+import SpeakAndRepeatActivity from '../components/learning/SpeakAndRepeatActivity.jsx';
 import AppIcon from '../components/AppIcon.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useProfile } from '../context/ProfileContext.jsx';
@@ -21,6 +22,7 @@ export default function Lesson() {
     error,
     completeConcept,
   } = useLessonData(unitId, user?.id);
+  const speechCards = cards.filter((card) => card.speech_practice_enabled);
 
   if (loading) {
     return <p className="page-loading">Preparing your activities…</p>;
@@ -60,6 +62,23 @@ export default function Lesson() {
         onCompleteConcept={completeConcept}
         onChangeActivity={() => setActivity(null)}
         showRomanization={profile?.show_romanization ?? true}
+        autoplayTts={profile?.autoplay_tts ?? false}
+        speechRate={Number(profile?.speech_rate ?? 1)}
+      />
+    );
+  }
+
+  if (activity === 'speak' && speechCards.length > 0) {
+    return (
+      <SpeakAndRepeatActivity
+        unit={unit}
+        cards={speechCards}
+        completedIds={completedIds}
+        onCompleteConcept={completeConcept}
+        onChangeActivity={() => setActivity(null)}
+        showRomanization={profile?.show_romanization ?? true}
+        autoplayTts={profile?.autoplay_tts ?? false}
+        speechRate={Number(profile?.speech_rate ?? 1)}
       />
     );
   }

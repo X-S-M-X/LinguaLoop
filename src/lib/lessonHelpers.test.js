@@ -1,8 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  buildFlashcardSession,
   buildLessonCards,
   buildQuizQuestions,
+  getFlashcardPool,
   getSessionPercent,
   shuffleItems,
 } from './lessonHelpers.js';
@@ -68,4 +70,23 @@ test('getSessionPercent reports progress before and after completion', () => {
   assert.equal(getSessionPercent(4, 10), 40);
   assert.equal(getSessionPercent(9, 10, true), 100);
   assert.equal(getSessionPercent(0, 0), 0);
+});
+
+test('getFlashcardPool separates learned and unlearned cards', () => {
+  const testCards = [{ id: 'one' }, { id: 'two' }, { id: 'three' }];
+  const completedIds = new Set(['two']);
+
+  assert.deepEqual(getFlashcardPool(testCards, completedIds, 'learned'), [{ id: 'two' }]);
+  assert.deepEqual(
+    getFlashcardPool(testCards, completedIds, 'unlearned'),
+    [{ id: 'one' }, { id: 'three' }]
+  );
+});
+
+test('buildFlashcardSession respects the requested session size', () => {
+  const testCards = Array.from({ length: 15 }, (_, index) => ({ id: String(index + 1) }));
+  const session = buildFlashcardSession(testCards, { size: 5, random: () => 0.5 });
+
+  assert.equal(session.length, 5);
+  assert.equal(new Set(session.map((card) => card.id)).size, 5);
 });

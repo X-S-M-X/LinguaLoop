@@ -22,7 +22,7 @@ export default function Dashboard() {
   }
 
   const learnerName = profile?.display_name || profile?.username || 'Learner';
-  const languageCode = language?.code?.toUpperCase() || '—';
+  const languageCode = language?.code?.toUpperCase() || 'N/A';
 
   return (
     <section className="dashboard">
@@ -62,7 +62,7 @@ export default function Dashboard() {
                 {nextUnit
                   ? `Continue: ${nextUnit.title}`
                   : courseProgress.totalCards > 0
-                    ? 'Course complete — for now'
+                    ? 'Course complete, for now'
                     : 'Your first unit is coming soon'}
               </h2>
               <span>{courseProgress.completedCards} of {courseProgress.totalCards} cards learned</span>
@@ -149,7 +149,7 @@ export default function Dashboard() {
           <section className="summary-card summary-card--quiet">
             <p className="eyebrow">Learning preferences</p>
             <h3>Make the path yours</h3>
-            <p>Switch languages, adjust your daily goal, or control Japanese romanisation.</p>
+            <p>Switch languages, adjust your daily goal, or control pronunciation audio.</p>
             <Link to="/settings" className="inline-link">Open settings <AppIcon name="arrow" size={16} /></Link>
           </section>
         </aside>

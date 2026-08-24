@@ -1,7 +1,11 @@
 import { Link } from 'react-router-dom';
 import AppIcon from '../AppIcon.jsx';
+import { isSpeechRecognitionSupported } from '../../lib/speechHelpers.js';
 
 export default function ActivityPicker({ unit, cards, completedCount, onSelect }) {
+  const microphoneSupported = isSpeechRecognitionSupported();
+  const speechCardCount = cards.filter((card) => card.speech_practice_enabled).length;
+
   return (
     <section className="lesson-shell">
       <div className="lesson-topbar">
@@ -45,6 +49,25 @@ export default function ActivityPicker({ unit, cards, completedCount, onSelect }
           </span>
           <AppIcon name="arrow" size={20} />
         </button>
+
+        {speechCardCount > 0 && (
+          <button
+            type="button"
+            className="activity-card activity-card--gold"
+            onClick={() => onSelect('speak')}
+          >
+            <span className="activity-card__icon"><AppIcon name="mic" size={30} /></span>
+            <span className="activity-card__body">
+              <strong>Speak and repeat</strong>
+              <small>
+                {microphoneSupported
+                  ? `Listen to five of ${speechCardCount} phrases, then compare the recognised words.`
+                  : 'Listen and repeat in manual mode. Microphone matching is unavailable here.'}
+              </small>
+            </span>
+            <AppIcon name="arrow" size={20} />
+          </button>
+        )}
       </div>
     </section>
   );

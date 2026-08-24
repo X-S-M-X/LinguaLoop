@@ -80,3 +80,31 @@ export function getSessionPercent(currentIndex, total, finished = false) {
   if (finished) return 100;
   return Math.round((currentIndex / total) * 100);
 }
+
+export function getFlashcardPool(cards = [], completedIds = new Set(), filter = 'all') {
+  if (filter === 'unlearned') {
+    return cards.filter((card) => !completedIds.has(card.id));
+  }
+
+  if (filter === 'learned') {
+    return cards.filter((card) => completedIds.has(card.id));
+  }
+
+  return [...cards];
+}
+
+export function buildFlashcardSession(
+  cards = [],
+  {
+    completedIds = new Set(),
+    filter = 'all',
+    size = 'all',
+    random = Math.random,
+  } = {}
+) {
+  const pool = shuffleItems(getFlashcardPool(cards, completedIds, filter), random);
+  const requestedSize = Number(size);
+
+  if (!Number.isFinite(requestedSize) || requestedSize <= 0) return pool;
+  return pool.slice(0, requestedSize);
+}

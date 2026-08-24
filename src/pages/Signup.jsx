@@ -23,7 +23,7 @@ export default function Signup() {
 
     const normalizedUsername = normalizeUsername(username);
     if (!isValidUsername(normalizedUsername)) {
-      setError('Use 3–30 characters. Start with a letter or number, then use letters, numbers, dots, dashes, or underscores.');
+      setError('Use 3 to 30 characters. Start with a letter or number, then use letters, numbers, dots, dashes, or underscores.');
       setLoading(false);
       return;
     }
@@ -144,7 +144,7 @@ export default function Signup() {
               minLength={3}
               maxLength={30}
               pattern="[A-Za-z0-9][A-Za-z0-9._-]{2,29}"
-              title="3–30 characters; start with a letter or number"
+              title="3 to 30 characters; start with a letter or number"
               autoComplete="username"
               required
             />

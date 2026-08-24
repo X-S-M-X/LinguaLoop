@@ -67,6 +67,31 @@ const icons = {
       <path d="m4 4 5 5" />
     </>
   ),
+  speaker: (
+    <>
+      <path d="M11 5 6 9H2v6h4l5 4V5Z" />
+      <path d="M15.5 8.5a5 5 0 0 1 0 7" />
+      <path d="M18.5 5.5a9 9 0 0 1 0 13" />
+    </>
+  ),
+  mic: (
+    <>
+      <rect x="9" y="2" width="6" height="12" rx="3" />
+      <path d="M5 11a7 7 0 0 0 14 0M12 18v4M8 22h8" />
+    </>
+  ),
+  swap: (
+    <>
+      <path d="M7 7h14l-3-3M21 7l-3 3" />
+      <path d="M17 17H3l3 3M3 17l3-3" />
+    </>
+  ),
+  headphones: (
+    <>
+      <path d="M4 14v-2a8 8 0 0 1 16 0v2" />
+      <path d="M4 14h3v7H5a2 2 0 0 1-2-2v-3a2 2 0 0 1 1-2ZM20 14h-3v7h2a2 2 0 0 0 2-2v-3a2 2 0 0 0-1-2Z" />
+    </>
+  ),
 };
 
 export default function AppIcon({ name, size = 22, className = '' }) {

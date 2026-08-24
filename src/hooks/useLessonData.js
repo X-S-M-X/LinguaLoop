@@ -24,10 +24,10 @@ export function useLessonData(unitId, userId) {
         .select('id, language_id, slug, title, description, sort_order')
         .eq('id', unitId)
         .maybeSingle(),
-      supabase.from('languages').select('id, code, name'),
+      supabase.from('languages').select('id, code, name, speech_locale'),
       supabase
         .from('concepts')
-        .select('id, unit_id, slug, difficulty, sort_order')
+        .select('id, unit_id, slug, difficulty, sort_order, speech_practice_enabled')
         .eq('unit_id', unitId)
         .order('sort_order'),
     ]);
