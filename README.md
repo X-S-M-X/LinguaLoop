@@ -8,8 +8,6 @@ speaking practice, saved progress, database migrations, and GitHub Pages deploym
 
 ## Local setup
 
-Use Node.js 22 (the version in `.nvmrc` and the deployment workflow).
-
 1. Install dependencies:
 
    ```bash
@@ -21,13 +19,6 @@ Use Node.js 22 (the version in `.nvmrc` and the deployment workflow).
    ```bash
    cp .env.example .env
    ```
-
-3. Add the Supabase project URL and public publishable/anon key to `.env`.
-   Never put a service-role key in a Vite environment variable.
-
-4. Apply the database migrations by following
-   [`supabase/README.md`](supabase/README.md).
-
 5. Start the application:
 
    ```bash
