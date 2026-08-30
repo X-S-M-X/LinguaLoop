@@ -4,6 +4,30 @@ import { useProfile } from '../context/ProfileContext.jsx';
 import { useLearningOverview } from '../hooks/useLearningOverview.js';
 import AppIcon from '../components/AppIcon.jsx';
 
+const PATH_ACTIVITIES = [
+  {
+    id: 'flashcards',
+    label: 'Learn',
+    title: 'Build the words',
+    icon: 'cards',
+    threshold: 34,
+  },
+  {
+    id: 'quiz',
+    label: 'Check',
+    title: 'Quick quiz',
+    icon: 'quiz',
+    threshold: 67,
+  },
+  {
+    id: 'speak',
+    label: 'Speak',
+    title: 'Say it aloud',
+    icon: 'mic',
+    threshold: 100,
+  },
+];
+
 export default function Dashboard() {
   const { user } = useAuth();
   const { profile, loading: profileLoading } = useProfile();
@@ -75,7 +99,7 @@ export default function Dashboard() {
             )}
           </section>
 
-          <section className="learning-path" aria-labelledby="learning-path-title">
+          <section className="learning-path learning-path--guided" aria-labelledby="learning-path-title">
             <div className="section-heading section-heading--row">
               <div>
                 <p className="eyebrow">Current course</p>
@@ -91,35 +115,61 @@ export default function Dashboard() {
                 <p>Choose another language in Settings or check back after content is added.</p>
               </div>
             ) : (
-              <ol className="unit-list">
+              <ol className="guided-unit-list">
                 {units.map((unit, index) => {
                   const progress = unitProgress(unit.id);
                   return (
-                    <li key={unit.id} className="unit-step">
-                      <div className={`unit-node${progress.isComplete ? ' unit-node--complete' : ''}`}>
-                        {progress.isComplete ? <AppIcon name="check" /> : index + 1}
-                      </div>
-                      <article className="unit-card">
-                        <div className="unit-card__topline">
+                    <li key={unit.id} className="guided-unit">
+                      <header className="guided-unit__header">
+                        <div>
                           <span>Unit {index + 1}</span>
-                          <strong>{progress.completed}/{progress.total} cards</strong>
+                          <h3>{unit.title}</h3>
+                          <p>{unit.description}</p>
                         </div>
-                        <h3>{unit.title}</h3>
-                        <p>{unit.description}</p>
+                        <strong>{progress.completed}/{progress.total}</strong>
+                      </header>
+
+                      <div className="guided-path" aria-label={`${unit.title} activities`}>
+                        {PATH_ACTIVITIES.map((pathActivity, activityIndex) => {
+                          const previousThreshold = activityIndex === 0
+                            ? 0
+                            : PATH_ACTIVITIES[activityIndex - 1].threshold;
+                          const isDone = progress.percent >= pathActivity.threshold;
+                          const isCurrent = !isDone && progress.percent >= previousThreshold;
+
+                          return (
+                            <div
+                              key={pathActivity.id}
+                              className={`guided-path__stop guided-path__stop--${activityIndex + 1}`}
+                            >
+                              <Link
+                                to={`/lessons/${unit.id}?activity=${pathActivity.id}`}
+                                className={`path-activity-node${isDone ? ' path-activity-node--done' : ''}${isCurrent ? ' path-activity-node--current' : ''}`}
+                                aria-label={`${pathActivity.title}, ${isDone ? 'completed stage' : 'open activity'}`}
+                              >
+                                <AppIcon name={isDone ? 'check' : pathActivity.icon} size={28} />
+                              </Link>
+                              <span>{pathActivity.label}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      <footer className="guided-unit__footer">
                         <progress
                           className="progress-bar"
                           max="100"
                           value={progress.percent}
                           aria-label={`${unit.title}: ${progress.percent}% complete`}
                         />
-                        <div className="unit-card__footer">
+                        <div>
                           <span>{progress.isComplete ? 'Unit complete' : `${progress.percent}% complete`}</span>
                           <Link to={`/lessons/${unit.id}`} className="button button--outline button--small">
-                            {progress.completed > 0 ? 'Practise' : 'Start'}
+                            All activities
                             <AppIcon name="arrow" size={16} />
                           </Link>
                         </div>
-                      </article>
+                      </footer>
                     </li>
                   );
                 })}

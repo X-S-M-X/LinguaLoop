@@ -71,7 +71,7 @@ export default function NavBar() {
         <div className="app-sidebar__profile">
           <div className="sidebar-user">
             {avatar}
-            <div>
+            <div className="sidebar-user__details">
               <strong>{profile?.display_name || profile?.username || 'Learner'}</strong>
               <span>{profile?.username ? `@${profile.username}` : user?.email}</span>
             </div>

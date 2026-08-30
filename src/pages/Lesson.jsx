@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 import ActivityPicker from '../components/learning/ActivityPicker.jsx';
 import FlashcardActivity from '../components/learning/FlashcardActivity.jsx';
 import QuizActivity from '../components/learning/QuizActivity.jsx';
@@ -11,9 +11,13 @@ import { useLessonData } from '../hooks/useLessonData.js';
 
 export default function Lesson() {
   const { unitId } = useParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuth();
   const { profile } = useProfile();
-  const [activity, setActivity] = useState(null);
+  const requestedActivity = searchParams.get('activity');
+  const [activity, setActivity] = useState(
+    ['flashcards', 'quiz', 'speak'].includes(requestedActivity) ? requestedActivity : null
+  );
   const {
     unit,
     cards,
@@ -23,6 +27,16 @@ export default function Lesson() {
     completeConcept,
   } = useLessonData(unitId, user?.id);
   const speechCards = cards.filter((card) => card.speech_practice_enabled);
+
+  function selectActivity(nextActivity) {
+    setActivity(nextActivity);
+    setSearchParams({ activity: nextActivity });
+  }
+
+  function returnToActivities() {
+    setActivity(null);
+    setSearchParams({});
+  }
 
   if (loading) {
     return <p className="page-loading">Preparing your activities…</p>;
@@ -60,7 +74,7 @@ export default function Lesson() {
         cards={cards}
         completedIds={completedIds}
         onCompleteConcept={completeConcept}
-        onChangeActivity={() => setActivity(null)}
+        onChangeActivity={returnToActivities}
         showRomanization={profile?.show_romanization ?? true}
         autoplayTts={profile?.autoplay_tts ?? false}
         speechRate={Number(profile?.speech_rate ?? 1)}
@@ -75,7 +89,7 @@ export default function Lesson() {
         cards={speechCards}
         completedIds={completedIds}
         onCompleteConcept={completeConcept}
-        onChangeActivity={() => setActivity(null)}
+        onChangeActivity={returnToActivities}
         showRomanization={profile?.show_romanization ?? true}
         autoplayTts={profile?.autoplay_tts ?? false}
         speechRate={Number(profile?.speech_rate ?? 1)}
@@ -90,7 +104,7 @@ export default function Lesson() {
         cards={cards}
         completedIds={completedIds}
         onCompleteConcept={completeConcept}
-        onChangeActivity={() => setActivity(null)}
+        onChangeActivity={returnToActivities}
       />
     );
   }
@@ -100,7 +114,7 @@ export default function Lesson() {
       unit={unit}
       cards={cards}
       completedCount={completedIds.size}
-      onSelect={setActivity}
+      onSelect={selectActivity}
     />
   );
 }

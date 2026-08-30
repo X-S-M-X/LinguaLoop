@@ -24,11 +24,11 @@ export default function Home() {
     <section className="home-page">
       <div className="home-hero">
         <div className="home-hero__content">
-          <p className="pill-label"><AppIcon name="spark" size={17} /> Learn a little every day</p>
-          <h1>Make a new language feel <span>within reach.</span></h1>
+          <p className="pill-label"><AppIcon name="spark" size={17} /> Your next word is one step away</p>
+          <h1>Learn in short loops. <span>Remember for longer.</span></h1>
           <p className="hero__lead">
-            Follow a clear path, practise with friendly flashcards, and keep every
-            step of your progress connected to your account.
+            Move through a playful path of flashcards, quick quizzes, and speaking
+            practice. Every completed concept stays connected to your account.
           </p>
 
           <div className="hero__actions">

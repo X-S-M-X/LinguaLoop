@@ -2,11 +2,13 @@
 
 LinguaLoop is a React, Vite, and Supabase language-learning application built
 as a 15-week university project. This repository currently contains the
-foundation plus three learning activities: authentication, protected routes,
+foundation plus a Week 7 guided-path interface and three learning activities: authentication, protected routes,
 profiles, avatar storage, configurable flashcards, multiple-choice quizzes,
 speaking practice, saved progress, database migrations, and GitHub Pages deployment.
 
 ## Local setup
+
+Use Node.js 22 (the version in `.nvmrc` and the deployment workflow).
 
 1. Install dependencies:
 
@@ -19,6 +21,13 @@ speaking practice, saved progress, database migrations, and GitHub Pages deploym
    ```bash
    cp .env.example .env
    ```
+
+3. Add the Supabase project URL and public publishable/anon key to `.env`.
+   Never put a service-role key in a Vite environment variable.
+
+4. Apply the database migrations by following
+   [`supabase/README.md`](supabase/README.md).
+
 5. Start the application:
 
    ```bash
@@ -122,6 +131,8 @@ available in the project's dependency line.
 
 Built:
 
+- Week 7 guided learning-path redesign with direct activity nodes
+- Correctly centred profile initials in desktop and mobile navigation
 - Signup, email confirmation, login, and logout
 - Authenticated users are redirected from public routes to their dashboard
 - Responsive learning dashboard and learning path
