@@ -131,6 +131,9 @@ available in the project's dependency line.
 
 Built:
 
+- Week 8 append-only learning-attempt history protected by owner-only RLS
+- Deterministic Smart Review sessions prioritising mistakes and unlearned concepts
+- Recent practice accuracy on the dashboard and Progress page
 - Week 7 guided learning-path redesign with direct activity nodes
 - Correctly centred profile initials in desktop and mobile navigation
 - Signup, email confirmation, login, and logout

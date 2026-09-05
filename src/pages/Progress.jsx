@@ -12,6 +12,7 @@ export default function Progress() {
     units,
     courseProgress,
     unitProgress,
+    practiceSummary,
     loading,
     error,
   } = useLearningOverview(user?.id, profile?.learning_language_id);
@@ -63,6 +64,11 @@ export default function Progress() {
           <span><AppIcon name="check" /></span>
           <strong>{courseProgress.completedUnits}</strong>
           <p>Units completed</p>
+        </article>
+        <article>
+          <span><AppIcon name="target" /></span>
+          <strong>{practiceSummary.accuracy === null ? 'New' : `${practiceSummary.accuracy}%`}</strong>
+          <p>{practiceSummary.total} saved attempts</p>
         </article>
       </div>
 

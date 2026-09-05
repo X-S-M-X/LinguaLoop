@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import AppIcon from '../AppIcon.jsx';
 import { isSpeechRecognitionSupported } from '../../lib/speechHelpers.js';
 
-export default function ActivityPicker({ unit, cards, completedCount, onSelect }) {
+export default function ActivityPicker({ unit, cards, completedCount, attemptCount, onSelect }) {
   const microphoneSupported = isSpeechRecognitionSupported();
   const speechCardCount = cards.filter((card) => card.speech_practice_enabled).length;
 
@@ -24,6 +24,23 @@ export default function ActivityPicker({ unit, cards, completedCount, onSelect }
       </header>
 
       <div className="activity-grid">
+        <button
+          type="button"
+          className="activity-card activity-card--smart"
+          onClick={() => onSelect('review')}
+        >
+          <span className="activity-card__icon"><AppIcon name="spark" size={30} /></span>
+          <span className="activity-card__body">
+            <strong>Smart review</strong>
+            <small>
+              {attemptCount > 0
+                ? `Focus on weak concepts using your last ${attemptCount} saved attempts.`
+                : 'Start with unlearned concepts, then adapt as your attempt history grows.'}
+            </small>
+          </span>
+          <AppIcon name="arrow" size={20} />
+        </button>
+
         <button
           type="button"
           className="activity-card"

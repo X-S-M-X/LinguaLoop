@@ -16,15 +16,17 @@ export default function Lesson() {
   const { profile } = useProfile();
   const requestedActivity = searchParams.get('activity');
   const [activity, setActivity] = useState(
-    ['flashcards', 'quiz', 'speak'].includes(requestedActivity) ? requestedActivity : null
+    ['flashcards', 'quiz', 'speak', 'review'].includes(requestedActivity) ? requestedActivity : null
   );
   const {
     unit,
     cards,
     completedIds,
+    attempts,
     loading,
     error,
     completeConcept,
+    recordAttempt,
   } = useLessonData(unitId, user?.id);
   const speechCards = cards.filter((card) => card.speech_practice_enabled);
 
@@ -74,6 +76,25 @@ export default function Lesson() {
         cards={cards}
         completedIds={completedIds}
         onCompleteConcept={completeConcept}
+        onRecordAttempt={recordAttempt}
+        onChangeActivity={returnToActivities}
+        showRomanization={profile?.show_romanization ?? true}
+        autoplayTts={profile?.autoplay_tts ?? false}
+        speechRate={Number(profile?.speech_rate ?? 1)}
+      />
+    );
+  }
+
+  if (activity === 'review') {
+    return (
+      <FlashcardActivity
+        unit={unit}
+        cards={cards}
+        completedIds={completedIds}
+        attempts={attempts}
+        smartReview
+        onCompleteConcept={completeConcept}
+        onRecordAttempt={recordAttempt}
         onChangeActivity={returnToActivities}
         showRomanization={profile?.show_romanization ?? true}
         autoplayTts={profile?.autoplay_tts ?? false}
@@ -89,6 +110,7 @@ export default function Lesson() {
         cards={speechCards}
         completedIds={completedIds}
         onCompleteConcept={completeConcept}
+        onRecordAttempt={recordAttempt}
         onChangeActivity={returnToActivities}
         showRomanization={profile?.show_romanization ?? true}
         autoplayTts={profile?.autoplay_tts ?? false}
@@ -104,6 +126,7 @@ export default function Lesson() {
         cards={cards}
         completedIds={completedIds}
         onCompleteConcept={completeConcept}
+        onRecordAttempt={recordAttempt}
         onChangeActivity={returnToActivities}
       />
     );
@@ -114,6 +137,7 @@ export default function Lesson() {
       unit={unit}
       cards={cards}
       completedCount={completedIds.size}
+      attemptCount={attempts.length}
       onSelect={selectActivity}
     />
   );

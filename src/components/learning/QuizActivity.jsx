@@ -8,6 +8,7 @@ export default function QuizActivity({
   cards,
   completedIds,
   onCompleteConcept,
+  onRecordAttempt,
   onChangeActivity,
 }) {
   const [questions, setQuestions] = useState(() => buildQuizQuestions(cards));
@@ -58,6 +59,17 @@ export default function QuizActivity({
     const isCorrect = choiceId === currentQuestion.id;
     setSelectedChoiceId(choiceId);
     setAnswerWasCorrect(isCorrect);
+
+    try {
+      await onRecordAttempt({
+        conceptId: currentQuestion.id,
+        activityType: 'quiz',
+        wasCorrect: isCorrect,
+        score: isCorrect ? 100 : 0,
+      });
+    } catch (attemptError) {
+      console.warn('The quiz continued, but the attempt history was not saved:', attemptError);
+    }
 
     if (isCorrect) {
       setCorrectIds((current) => new Set(current).add(currentQuestion.id));

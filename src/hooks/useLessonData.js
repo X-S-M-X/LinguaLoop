@@ -6,6 +6,7 @@ export function useLessonData(unitId, userId) {
   const [unit, setUnit] = useState(null);
   const [cards, setCards] = useState([]);
   const [completedIds, setCompletedIds] = useState(new Set());
+  const [attempts, setAttempts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -49,9 +50,10 @@ export function useLessonData(unitId, userId) {
     const conceptIds = concepts.map((concept) => concept.id);
     let translations = [];
     let progressRows = [];
+    let attemptRows = [];
 
     if (conceptIds.length > 0) {
-      const [translationResult, progressResult] = await Promise.all([
+      const [translationResult, progressResult, attemptResult] = await Promise.all([
         supabase
           .from('translations')
           .select('concept_id, language_id, term, romanization')
@@ -61,9 +63,16 @@ export function useLessonData(unitId, userId) {
           .select('concept_id, completed_at')
           .eq('user_id', userId)
           .in('concept_id', conceptIds),
+        supabase
+          .from('learning_attempts')
+          .select('id, concept_id, activity_type, was_correct, score, created_at')
+          .eq('user_id', userId)
+          .in('concept_id', conceptIds)
+          .order('created_at', { ascending: false })
+          .limit(250),
       ]);
 
-      const contentError = translationResult.error ?? progressResult.error;
+      const contentError = translationResult.error ?? progressResult.error ?? attemptResult.error;
       if (contentError) {
         setError(contentError.message);
         setLoading(false);
@@ -72,6 +81,7 @@ export function useLessonData(unitId, userId) {
 
       translations = translationResult.data ?? [];
       progressRows = progressResult.data ?? [];
+      attemptRows = attemptResult.data ?? [];
     }
 
     const languages = languagesResult.data ?? [];
@@ -94,6 +104,7 @@ export function useLessonData(unitId, userId) {
     setCompletedIds(
       new Set(progressRows.filter((row) => row.completed_at).map((row) => row.concept_id))
     );
+    setAttempts(attemptRows);
     setLoading(false);
   }, [unitId, userId]);
 
@@ -123,13 +134,38 @@ export function useLessonData(unitId, userId) {
     });
   }, [userId]);
 
+  const recordAttempt = useCallback(async ({
+    conceptId,
+    activityType,
+    wasCorrect,
+    score = null,
+  }) => {
+    const { data, error: attemptError } = await supabase
+      .from('learning_attempts')
+      .insert({
+        user_id: userId,
+        concept_id: conceptId,
+        activity_type: activityType,
+        was_correct: wasCorrect,
+        score,
+      })
+      .select('id, concept_id, activity_type, was_correct, score, created_at')
+      .single();
+
+    if (attemptError) throw attemptError;
+    setAttempts((current) => [data, ...current].slice(0, 250));
+    return data;
+  }, [userId]);
+
   return {
     unit,
     cards,
     completedIds,
+    attempts,
     loading,
     error,
     reload: load,
     completeConcept,
+    recordAttempt,
   };
 }

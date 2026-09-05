@@ -13,6 +13,7 @@ export default function SpeakAndRepeatActivity({
   cards,
   completedIds,
   onCompleteConcept,
+  onRecordAttempt,
   onChangeActivity,
   autoplayTts,
   speechRate,
@@ -52,6 +53,17 @@ export default function SpeakAndRepeatActivity({
   async function handleTranscript(nextTranscript) {
     const nextMatch = getSpeechMatch(currentCard.answer, nextTranscript, locale);
     setMatch(nextMatch);
+
+    try {
+      await onRecordAttempt({
+        conceptId: currentCard.id,
+        activityType: 'speech',
+        wasCorrect: nextMatch.status === 'matched',
+        score: nextMatch.score,
+      });
+    } catch (attemptError) {
+      console.warn('Speaking practice continued, but the attempt history was not saved:', attemptError);
+    }
 
     if (nextMatch.status !== 'matched') return;
 

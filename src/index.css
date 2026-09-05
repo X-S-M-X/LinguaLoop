@@ -1710,6 +1710,20 @@ a:hover {
   color: var(--purple);
 }
 
+.activity-card--smart {
+  border-color: #cfd3fa;
+  background: linear-gradient(145deg, #f7f7ff, #ffffff);
+}
+
+.activity-card--smart:hover {
+  border-color: var(--purple);
+}
+
+.activity-card--smart .activity-card__icon {
+  background: var(--purple-soft);
+  color: var(--purple);
+}
+
 .activity-card__body strong,
 .activity-card__body small {
   display: block;
@@ -2126,7 +2140,7 @@ a:hover {
 
 .progress-summary-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 18px;
 }
 
@@ -2621,6 +2635,10 @@ a:hover {
 
   .activity-grid {
     grid-template-columns: 1fr;
+  }
+
+  .progress-summary-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 

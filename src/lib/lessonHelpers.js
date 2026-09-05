@@ -108,3 +108,46 @@ export function buildFlashcardSession(
   if (!Number.isFinite(requestedSize) || requestedSize <= 0) return pool;
   return pool.slice(0, requestedSize);
 }
+
+export function buildSmartReviewSession(
+  cards = [],
+  attempts = [],
+  completedIds = new Set(),
+  size = 5
+) {
+  const stats = new Map();
+
+  for (const attempt of attempts) {
+    const current = stats.get(attempt.concept_id) ?? {
+      correct: 0,
+      incorrect: 0,
+      lastAttemptAt: '',
+    };
+
+    if (attempt.was_correct) current.correct += 1;
+    else current.incorrect += 1;
+
+    if (attempt.created_at > current.lastAttemptAt) {
+      current.lastAttemptAt = attempt.created_at;
+    }
+    stats.set(attempt.concept_id, current);
+  }
+
+  return [...cards]
+    .map((card) => {
+      const cardStats = stats.get(card.id) ?? { correct: 0, incorrect: 0, lastAttemptAt: '' };
+      const priority = (cardStats.incorrect * 4)
+        - cardStats.correct
+        + (completedIds.has(card.id) ? 0 : 2)
+        + (Number(card.difficulty) || 1) / 10;
+
+      return { card, priority, lastAttemptAt: cardStats.lastAttemptAt };
+    })
+    .sort((left, right) => (
+      right.priority - left.priority
+      || left.lastAttemptAt.localeCompare(right.lastAttemptAt)
+      || left.card.sort_order - right.card.sort_order
+    ))
+    .slice(0, Math.min(Math.max(Number(size) || 5, 1), cards.length))
+    .map(({ card }) => card);
+}

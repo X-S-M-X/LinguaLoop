@@ -37,6 +37,7 @@ export default function Dashboard() {
     courseProgress,
     nextUnit,
     unitProgress,
+    practiceSummary,
     loading,
     error,
   } = useLearningOverview(user?.id, profile?.learning_language_id);
@@ -194,6 +195,21 @@ export default function Dashboard() {
               <div><strong>{courseProgress.completedCards}</strong><span>Cards learned</span></div>
               <div><strong>{courseProgress.completedUnits}</strong><span>Units finished</span></div>
             </div>
+          </section>
+
+          <section className="summary-card summary-card--quiet">
+            <p className="eyebrow">Smart review</p>
+            <h3>{practiceSummary.total > 0 ? `${practiceSummary.accuracy}% recent accuracy` : 'Ready to learn from you'}</h3>
+            <p>
+              {practiceSummary.total > 0
+                ? `${practiceSummary.incorrect} answers need another look.`
+                : 'Your review order will adapt after your first saved attempts.'}
+            </p>
+            {nextUnit && (
+              <Link to={`/lessons/${nextUnit.id}?activity=review`} className="inline-link">
+                Start smart review <AppIcon name="arrow" size={16} />
+              </Link>
+            )}
           </section>
 
           <section className="summary-card summary-card--quiet">

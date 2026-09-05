@@ -11,6 +11,7 @@ export function useLearningOverview(userId, learningLanguageId) {
   const [units, setUnits] = useState([]);
   const [concepts, setConcepts] = useState([]);
   const [progressRows, setProgressRows] = useState([]);
+  const [attemptRows, setAttemptRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -20,6 +21,7 @@ export function useLearningOverview(userId, learningLanguageId) {
       setUnits([]);
       setConcepts([]);
       setProgressRows([]);
+      setAttemptRows([]);
       setLoading(false);
       return;
     }
@@ -69,27 +71,40 @@ export function useLearningOverview(userId, learningLanguageId) {
 
     const conceptIds = loadedConcepts.map((concept) => concept.id);
     let loadedProgress = [];
+    let loadedAttempts = [];
 
     if (conceptIds.length > 0) {
-      const progressResult = await supabase
-        .from('progress')
-        .select('concept_id, completed_at, score')
-        .eq('user_id', userId)
-        .in('concept_id', conceptIds);
+      const [progressResult, attemptResult] = await Promise.all([
+        supabase
+          .from('progress')
+          .select('concept_id, completed_at, score')
+          .eq('user_id', userId)
+          .in('concept_id', conceptIds),
+        supabase
+          .from('learning_attempts')
+          .select('concept_id, was_correct, activity_type, created_at')
+          .eq('user_id', userId)
+          .in('concept_id', conceptIds)
+          .order('created_at', { ascending: false })
+          .limit(500),
+      ]);
 
-      if (progressResult.error) {
-        setError(progressResult.error.message);
+      const learningError = progressResult.error ?? attemptResult.error;
+      if (learningError) {
+        setError(learningError.message);
         setLoading(false);
         return;
       }
 
       loadedProgress = progressResult.data ?? [];
+      loadedAttempts = attemptResult.data ?? [];
     }
 
     setLanguage(languageResult.data ?? null);
     setUnits(loadedUnits);
     setConcepts(loadedConcepts);
     setProgressRows(loadedProgress);
+    setAttemptRows(loadedAttempts);
     setLoading(false);
   }, [learningLanguageId, userId]);
 
@@ -112,11 +127,24 @@ export function useLearningOverview(userId, learningLanguageId) {
     [concepts, progressRows]
   );
 
+  const practiceSummary = useMemo(() => {
+    const correct = attemptRows.filter((attempt) => attempt.was_correct).length;
+    const total = attemptRows.length;
+    return {
+      total,
+      correct,
+      incorrect: total - correct,
+      accuracy: total > 0 ? Math.round((correct / total) * 100) : null,
+    };
+  }, [attemptRows]);
+
   return {
     language,
     units,
     concepts,
     progressRows,
+    attemptRows,
+    practiceSummary,
     courseProgress,
     nextUnit,
     unitProgress,

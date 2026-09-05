@@ -4,6 +4,7 @@ import AppIcon from '../AppIcon.jsx';
 import { useSpeechSynthesis } from '../../hooks/useSpeechSynthesis.js';
 import {
   buildFlashcardSession,
+  buildSmartReviewSession,
   getFlashcardPool,
   getSessionPercent,
   shuffleItems,
@@ -25,16 +26,21 @@ export default function FlashcardActivity({
   cards,
   completedIds,
   onCompleteConcept,
+  onRecordAttempt,
   onChangeActivity,
   showRomanization,
   autoplayTts,
   speechRate,
+  attempts = [],
+  smartReview = false,
 }) {
   const [filter, setFilter] = useState('all');
   const [sessionSize, setSessionSize] = useState('all');
   const [direction, setDirection] = useState('source-target');
-  const [sessionCards, setSessionCards] = useState([]);
-  const [started, setStarted] = useState(false);
+  const [sessionCards, setSessionCards] = useState(() => (
+    smartReview ? buildSmartReviewSession(cards, attempts, completedIds, 5) : []
+  ));
+  const [started, setStarted] = useState(smartReview);
   const [cardIndex, setCardIndex] = useState(0);
   const [revealed, setRevealed] = useState(false);
   const [finished, setFinished] = useState(false);
@@ -73,11 +79,13 @@ export default function FlashcardActivity({
   }
 
   function startSession() {
-    const nextCards = buildFlashcardSession(cards, {
-      completedIds,
-      filter,
-      size: sessionSize,
-    });
+    const nextCards = smartReview
+      ? buildSmartReviewSession(cards, attempts, completedIds, 5)
+      : buildFlashcardSession(cards, {
+        completedIds,
+        filter,
+        size: sessionSize,
+      });
 
     if (nextCards.length === 0) return;
     resetRound(nextCards);
@@ -106,6 +114,17 @@ export default function FlashcardActivity({
         await onCompleteConcept(currentCard.id, 100);
       }
 
+      try {
+        await onRecordAttempt({
+          conceptId: currentCard.id,
+          activityType: smartReview ? 'smart_review' : 'flashcard',
+          wasCorrect: true,
+          score: 100,
+        });
+      } catch (attemptError) {
+        console.warn('Progress was saved, but the attempt history was not:', attemptError);
+      }
+
       setKnownThisSession((current) => new Set(current).add(currentCard.id));
       setMissedIds((current) => {
         const next = new Set(current);
@@ -120,9 +139,19 @@ export default function FlashcardActivity({
     }
   }
 
-  function markNotYet() {
+  async function markNotYet() {
     if (!currentCard || saving) return;
     setMissedIds((current) => new Set(current).add(currentCard.id));
+    try {
+      await onRecordAttempt({
+        conceptId: currentCard.id,
+        activityType: smartReview ? 'smart_review' : 'flashcard',
+        wasCorrect: false,
+        score: 0,
+      });
+    } catch (attemptError) {
+      console.warn('The review continued, but the attempt history was not saved:', attemptError);
+    }
     advance();
   }
 
@@ -138,6 +167,10 @@ export default function FlashcardActivity({
 
   function returnToSetup() {
     synthesis.stop();
+    if (smartReview) {
+      onChangeActivity();
+      return;
+    }
     setStarted(false);
   }
 
@@ -251,7 +284,7 @@ export default function FlashcardActivity({
     return (
       <section className="lesson-shell lesson-complete">
         <span className="lesson-complete__icon"><AppIcon name="check" size={44} /></span>
-        <p className="eyebrow">Flashcards complete</p>
+        <p className="eyebrow">{smartReview ? 'Smart review complete' : 'Flashcards complete'}</p>
         <h1>You finished this review.</h1>
         <p>
           You understood <strong>{knownThisSession.size} of {sessionCards.length}</strong> cards
@@ -271,7 +304,7 @@ export default function FlashcardActivity({
             </button>
           )}
           <button type="button" className="button button--secondary" onClick={startSession}>
-            New round
+            {smartReview ? 'Refresh review' : 'New round'}
           </button>
           <button type="button" className="button button--primary" onClick={onChangeActivity}>
             Choose activity <AppIcon name="arrow" size={18} />
@@ -290,7 +323,7 @@ export default function FlashcardActivity({
     <section className="lesson-shell">
       <div className="lesson-topbar lesson-topbar--actions">
         <button type="button" className="back-link back-link--button" onClick={returnToSetup}>
-          ← Flashcard setup
+          {smartReview ? '← Activities' : '← Flashcard setup'}
         </button>
         <div>
           <button
@@ -316,7 +349,7 @@ export default function FlashcardActivity({
       </div>
 
       <header className="lesson-heading">
-        <p className="eyebrow">Flashcards · {unit.title}</p>
+        <p className="eyebrow">{smartReview ? 'Smart review' : 'Flashcards'} · {unit.title}</p>
         <h1>{revealed ? 'Here is the answer' : 'What does this mean?'}</h1>
       </header>
 
@@ -381,7 +414,9 @@ export default function FlashcardActivity({
         </div>
       )}
       <p className="lesson-help" aria-live="polite">
-        “Know it” saves the concept once. “Need practice” adds it to the review round.
+        {smartReview
+          ? 'This round is ordered from your saved mistakes and unlearned concepts.'
+          : '“Know it” saves the concept once. “Need practice” adds it to the review round.'}
       </p>
     </section>
   );

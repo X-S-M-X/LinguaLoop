@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  buildSmartReviewSession,
   buildFlashcardSession,
   buildLessonCards,
   buildQuizQuestions,
@@ -89,4 +90,28 @@ test('buildFlashcardSession respects the requested session size', () => {
 
   assert.equal(session.length, 5);
   assert.equal(new Set(session.map((card) => card.id)).size, 5);
+});
+
+test('buildSmartReviewSession prioritises repeated mistakes and unlearned cards', () => {
+  const reviewCards = cards.map((card, index) => ({
+    ...card,
+    difficulty: 1,
+    sort_order: index,
+  }));
+  const attempts = [
+    { concept_id: 'c', was_correct: false, created_at: '2026-08-24T10:00:00Z' },
+    { concept_id: 'c', was_correct: false, created_at: '2026-08-25T10:00:00Z' },
+    { concept_id: 'a', was_correct: true, created_at: '2026-08-25T09:00:00Z' },
+  ];
+
+  const result = buildSmartReviewSession(
+    reviewCards,
+    attempts,
+    new Set(['a', 'b', 'c', 'd', 'e']),
+    3
+  );
+
+  assert.equal(result.length, 3);
+  assert.equal(result[0].id, 'c');
+  assert.equal(new Set(result.map((card) => card.id)).size, 3);
 });
