@@ -2,7 +2,7 @@
 
 LinguaLoop is a React, Vite, and Supabase language-learning application built
 as a 15-week university project. This repository currently contains the
-foundation plus a Week 7 guided-path interface and three learning activities: authentication, protected routes,
+foundation plus a Week 7 guided-path interface and several learning activities: authentication, protected routes,
 profiles, avatar storage, configurable flashcards, multiple-choice quizzes,
 speaking practice, saved progress, database migrations, and GitHub Pages deployment.
 
@@ -131,6 +131,9 @@ available in the project's dependency line.
 
 Built:
 
+- Week 9 opt-in Adaptive AI Coach through an authenticated Supabase Edge Function
+- Strict AI session schemas, validated curriculum IDs, a ten-session daily cap, and Smart Review fallback
+- Server-only OpenAI secrets, with no profile identity or microphone audio sent to the model
 - Week 8 append-only learning-attempt history protected by owner-only RLS
 - Deterministic Smart Review sessions prioritising mistakes and unlearned concepts
 - Recent practice accuracy on the dashboard and Progress page
@@ -155,8 +158,7 @@ Built:
 Planned:
 
 - A third language after its first 15-card curriculum is reviewed
-- Performance-history data for deterministic adaptive difficulty
-- A bounded authenticated "Explain this card" action through a Supabase Edge Function
+- Optional post-answer explanations after the AI session planner is evaluated
 - AI-assisted question variations only after verified curriculum safeguards are in place
 - Typed-answer and spaced-review practice
 - Streaks and points after their rules and data model are designed

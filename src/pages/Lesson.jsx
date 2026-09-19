@@ -4,6 +4,7 @@ import ActivityPicker from '../components/learning/ActivityPicker.jsx';
 import FlashcardActivity from '../components/learning/FlashcardActivity.jsx';
 import QuizActivity from '../components/learning/QuizActivity.jsx';
 import SpeakAndRepeatActivity from '../components/learning/SpeakAndRepeatActivity.jsx';
+import AiCoachActivity from '../components/learning/AiCoachActivity.jsx';
 import AppIcon from '../components/AppIcon.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useProfile } from '../context/ProfileContext.jsx';
@@ -16,7 +17,7 @@ export default function Lesson() {
   const { profile } = useProfile();
   const requestedActivity = searchParams.get('activity');
   const [activity, setActivity] = useState(
-    ['flashcards', 'quiz', 'speak', 'review'].includes(requestedActivity) ? requestedActivity : null
+    ['flashcards', 'quiz', 'speak', 'review', 'ai'].includes(requestedActivity) ? requestedActivity : null
   );
   const {
     unit,
@@ -103,6 +104,24 @@ export default function Lesson() {
     );
   }
 
+  if (activity === 'ai') {
+    return (
+      <AiCoachActivity
+        unit={unit}
+        cards={cards}
+        completedIds={completedIds}
+        attempts={attempts}
+        aiEnabled={profile?.ai_coaching_enabled ?? false}
+        onCompleteConcept={completeConcept}
+        onRecordAttempt={recordAttempt}
+        onChangeActivity={returnToActivities}
+        showRomanization={profile?.show_romanization ?? true}
+        autoplayTts={profile?.autoplay_tts ?? false}
+        speechRate={Number(profile?.speech_rate ?? 1)}
+      />
+    );
+  }
+
   if (activity === 'speak' && speechCards.length > 0) {
     return (
       <SpeakAndRepeatActivity
@@ -138,6 +157,7 @@ export default function Lesson() {
       cards={cards}
       completedCount={completedIds.size}
       attemptCount={attempts.length}
+      aiEnabled={profile?.ai_coaching_enabled ?? false}
       onSelect={selectActivity}
     />
   );

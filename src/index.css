@@ -232,6 +232,10 @@ a:hover {
   gap: 5px;
 }
 
+.summary-card .inline-link + .inline-link {
+  margin-top: 9px;
+}
+
 .brand {
   display: inline-flex;
   align-items: center;
@@ -1724,6 +1728,21 @@ a:hover {
   color: var(--purple);
 }
 
+.activity-card--ai {
+  border-color: #b9dff8;
+  background: linear-gradient(145deg, #eef9ff, #ffffff);
+}
+
+.activity-card--ai:hover {
+  border-color: #2588c2;
+}
+
+.activity-card--ai .activity-card__icon,
+.settings-panel__icon--ai {
+  background: #e1f3ff;
+  color: #1674ab;
+}
+
 .activity-card__body strong,
 .activity-card__body small {
   display: block;
@@ -2282,6 +2301,155 @@ a:hover {
   margin: 14px 0 0;
   color: var(--muted);
   font-size: 0.78rem;
+}
+
+.settings-panel--ai {
+  border-color: #c9e3f4;
+  background: linear-gradient(145deg, #f7fcff, #ffffff 58%);
+}
+
+.settings-privacy-note--ai {
+  border-color: #d5e8f3;
+  background: #f2f9fd;
+}
+
+.ai-coach-shell {
+  width: min(100%, 820px);
+}
+
+.ai-coach-intro {
+  max-width: 650px;
+  margin: 50px auto 28px;
+  text-align: center;
+}
+
+.ai-coach-intro h1 {
+  margin: 14px 0 12px;
+}
+
+.ai-coach-intro > p:last-child {
+  color: var(--muted);
+}
+
+.ai-coach-orb {
+  width: 86px;
+  height: 80px;
+  display: grid;
+  place-items: center;
+  margin: 0 auto 20px;
+  border: 4px solid #238cc6;
+  border-bottom-width: 9px;
+  border-radius: 50%;
+  background: #45ace5;
+  color: #fff;
+  box-shadow: 0 0 0 9px #e4f5ff;
+}
+
+.ai-coach-actions,
+.ai-plan-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 13px;
+}
+
+.ai-coach-notice {
+  display: block;
+  max-width: 680px;
+  margin-inline: auto;
+  text-align: center;
+}
+
+.ai-plan-card {
+  max-width: 680px;
+  margin: 0 auto;
+  overflow: hidden;
+  border: 2px solid #c9e3f4;
+  border-bottom-width: 5px;
+  border-radius: 24px;
+  background: #fff;
+}
+
+.ai-plan-card__label {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  border-bottom: 2px solid #dcecf5;
+  padding: 17px 20px;
+  background: #eff9ff;
+  color: #176d9e;
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.ai-plan-card ol {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 0 20px;
+  list-style: none;
+}
+
+.ai-plan-card li {
+  display: grid;
+  grid-template-columns: 38px 1fr;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid var(--border);
+  padding: 15px 0;
+}
+
+.ai-plan-card li > span {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #e4f5ff;
+  color: #176d9e;
+  font-weight: 900;
+}
+
+.ai-plan-card li strong,
+.ai-plan-card li small {
+  display: block;
+}
+
+.ai-plan-card li small {
+  margin-top: 3px;
+  color: var(--muted);
+}
+
+.ai-plan-card__actions {
+  padding: 20px;
+}
+
+.ai-coach-focus {
+  display: inline-flex;
+  margin-bottom: 12px;
+  border-radius: 999px;
+  padding: 6px 10px;
+  background: #e4f5ff;
+  color: #176d9e;
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.ai-card-hint {
+  max-width: 500px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  margin-top: 16px;
+  border-radius: 12px;
+  padding: 9px 12px;
+  background: #eaf7ff;
+  color: #176d9e;
+  font-size: 0.8rem;
+  font-weight: 800;
 }
 
 .flashcard-setup-heading {
@@ -2882,6 +3050,16 @@ a:hover {
   .lesson-actions .button {
     width: 100%;
     min-width: 0;
+  }
+
+  .ai-coach-actions,
+  .ai-plan-card__actions {
+    display: grid;
+  }
+
+  .ai-coach-actions .button,
+  .ai-plan-card__actions .button {
+    width: 100%;
   }
 
   .quiz-options {

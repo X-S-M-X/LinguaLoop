@@ -2,7 +2,14 @@ import { Link } from 'react-router-dom';
 import AppIcon from '../AppIcon.jsx';
 import { isSpeechRecognitionSupported } from '../../lib/speechHelpers.js';
 
-export default function ActivityPicker({ unit, cards, completedCount, attemptCount, onSelect }) {
+export default function ActivityPicker({
+  unit,
+  cards,
+  completedCount,
+  attemptCount,
+  aiEnabled,
+  onSelect,
+}) {
   const microphoneSupported = isSpeechRecognitionSupported();
   const speechCardCount = cards.filter((card) => card.speech_practice_enabled).length;
 
@@ -36,6 +43,23 @@ export default function ActivityPicker({ unit, cards, completedCount, attemptCou
               {attemptCount > 0
                 ? `Focus on weak concepts using your last ${attemptCount} saved attempts.`
                 : 'Start with unlearned concepts, then adapt as your attempt history grows.'}
+            </small>
+          </span>
+          <AppIcon name="arrow" size={20} />
+        </button>
+
+        <button
+          type="button"
+          className="activity-card activity-card--ai"
+          onClick={() => onSelect('ai')}
+        >
+          <span className="activity-card__icon"><AppIcon name="spark" size={30} /></span>
+          <span className="activity-card__body">
+            <strong>AI practice coach</strong>
+            <small>
+              {aiEnabled
+                ? 'Generate a bounded five-card plan from your recent practice history.'
+                : 'Optional and off by default. Review the privacy note in Settings to enable it.'}
             </small>
           </span>
           <AppIcon name="arrow" size={20} />

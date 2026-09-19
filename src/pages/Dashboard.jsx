@@ -198,7 +198,7 @@ export default function Dashboard() {
           </section>
 
           <section className="summary-card summary-card--quiet">
-            <p className="eyebrow">Smart review</p>
+            <p className="eyebrow">Adaptive practice</p>
             <h3>{practiceSummary.total > 0 ? `${practiceSummary.accuracy}% recent accuracy` : 'Ready to learn from you'}</h3>
             <p>
               {practiceSummary.total > 0
@@ -208,6 +208,11 @@ export default function Dashboard() {
             {nextUnit && (
               <Link to={`/lessons/${nextUnit.id}?activity=review`} className="inline-link">
                 Start smart review <AppIcon name="arrow" size={16} />
+              </Link>
+            )}
+            {nextUnit && profile?.ai_coaching_enabled && (
+              <Link to={`/lessons/${nextUnit.id}?activity=ai`} className="inline-link">
+                Generate AI session <AppIcon name="spark" size={16} />
               </Link>
             )}
           </section>

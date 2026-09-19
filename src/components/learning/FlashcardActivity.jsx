@@ -33,14 +33,22 @@ export default function FlashcardActivity({
   speechRate,
   attempts = [],
   smartReview = false,
+  presetCards = null,
+  coachTitle = '',
+  coachHints = {},
 }) {
+  const hasPresetSession = Array.isArray(presetCards) && presetCards.length > 0;
   const [filter, setFilter] = useState('all');
   const [sessionSize, setSessionSize] = useState('all');
   const [direction, setDirection] = useState('source-target');
   const [sessionCards, setSessionCards] = useState(() => (
-    smartReview ? buildSmartReviewSession(cards, attempts, completedIds, 5) : []
+    hasPresetSession
+      ? presetCards
+      : smartReview
+        ? buildSmartReviewSession(cards, attempts, completedIds, 5)
+        : []
   ));
-  const [started, setStarted] = useState(smartReview);
+  const [started, setStarted] = useState(smartReview || hasPresetSession);
   const [cardIndex, setCardIndex] = useState(0);
   const [revealed, setRevealed] = useState(false);
   const [finished, setFinished] = useState(false);
@@ -79,13 +87,15 @@ export default function FlashcardActivity({
   }
 
   function startSession() {
-    const nextCards = smartReview
-      ? buildSmartReviewSession(cards, attempts, completedIds, 5)
-      : buildFlashcardSession(cards, {
-        completedIds,
-        filter,
-        size: sessionSize,
-      });
+    const nextCards = hasPresetSession
+      ? presetCards
+      : smartReview
+        ? buildSmartReviewSession(cards, attempts, completedIds, 5)
+        : buildFlashcardSession(cards, {
+          completedIds,
+          filter,
+          size: sessionSize,
+        });
 
     if (nextCards.length === 0) return;
     resetRound(nextCards);
@@ -117,7 +127,7 @@ export default function FlashcardActivity({
       try {
         await onRecordAttempt({
           conceptId: currentCard.id,
-          activityType: smartReview ? 'smart_review' : 'flashcard',
+          activityType: hasPresetSession ? 'ai_review' : smartReview ? 'smart_review' : 'flashcard',
           wasCorrect: true,
           score: 100,
         });
@@ -145,7 +155,7 @@ export default function FlashcardActivity({
     try {
       await onRecordAttempt({
         conceptId: currentCard.id,
-        activityType: smartReview ? 'smart_review' : 'flashcard',
+        activityType: hasPresetSession ? 'ai_review' : smartReview ? 'smart_review' : 'flashcard',
         wasCorrect: false,
         score: 0,
       });
@@ -167,7 +177,7 @@ export default function FlashcardActivity({
 
   function returnToSetup() {
     synthesis.stop();
-    if (smartReview) {
+    if (smartReview || hasPresetSession) {
       onChangeActivity();
       return;
     }
@@ -284,7 +294,9 @@ export default function FlashcardActivity({
     return (
       <section className="lesson-shell lesson-complete">
         <span className="lesson-complete__icon"><AppIcon name="check" size={44} /></span>
-        <p className="eyebrow">{smartReview ? 'Smart review complete' : 'Flashcards complete'}</p>
+        <p className="eyebrow">
+          {hasPresetSession ? 'AI practice complete' : smartReview ? 'Smart review complete' : 'Flashcards complete'}
+        </p>
         <h1>You finished this review.</h1>
         <p>
           You understood <strong>{knownThisSession.size} of {sessionCards.length}</strong> cards
@@ -304,7 +316,7 @@ export default function FlashcardActivity({
             </button>
           )}
           <button type="button" className="button button--secondary" onClick={startSession}>
-            {smartReview ? 'Refresh review' : 'New round'}
+            {hasPresetSession ? 'Repeat plan' : smartReview ? 'Refresh review' : 'New round'}
           </button>
           <button type="button" className="button button--primary" onClick={onChangeActivity}>
             Choose activity <AppIcon name="arrow" size={18} />
@@ -323,7 +335,7 @@ export default function FlashcardActivity({
     <section className="lesson-shell">
       <div className="lesson-topbar lesson-topbar--actions">
         <button type="button" className="back-link back-link--button" onClick={returnToSetup}>
-          {smartReview ? '← Activities' : '← Flashcard setup'}
+          {smartReview || hasPresetSession ? '← Activities' : '← Flashcard setup'}
         </button>
         <div>
           <button
@@ -349,7 +361,10 @@ export default function FlashcardActivity({
       </div>
 
       <header className="lesson-heading">
-        <p className="eyebrow">{smartReview ? 'Smart review' : 'Flashcards'} · {unit.title}</p>
+        <p className="eyebrow">
+          {hasPresetSession ? 'AI coach' : smartReview ? 'Smart review' : 'Flashcards'} · {unit.title}
+        </p>
+        {hasPresetSession && coachTitle && <span className="ai-coach-focus">{coachTitle}</span>}
         <h1>{revealed ? 'Here is the answer' : 'What does this mean?'}</h1>
       </header>
 
@@ -368,6 +383,11 @@ export default function FlashcardActivity({
         )}
         {cardWasKnown && (
           <span className="known-badge"><AppIcon name="check" size={15} /> Previously learned</span>
+        )}
+        {hasPresetSession && revealed && coachHints[currentCard.id] && (
+          <span className="ai-card-hint">
+            <AppIcon name="spark" size={16} /> Coach hint: {coachHints[currentCard.id]}
+          </span>
         )}
         {targetIsVisible && (
           <button
@@ -414,7 +434,9 @@ export default function FlashcardActivity({
         </div>
       )}
       <p className="lesson-help" aria-live="polite">
-        {smartReview
+        {hasPresetSession
+          ? 'AI chose the order. LinguaLoop still checks answers and saves completion normally.'
+          : smartReview
           ? 'This round is ordered from your saved mistakes and unlearned concepts.'
           : '“Know it” saves the concept once. “Need practice” adds it to the review round.'}
       </p>
