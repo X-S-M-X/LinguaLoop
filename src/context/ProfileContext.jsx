@@ -1,6 +1,12 @@
-import { createContext, useCallback, useContext, useEffect, useState } from 'react';
-import { supabase } from '../lib/supabaseClient.js';
-import { useAuth } from './AuthContext.jsx';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
+import { supabase } from "../lib/supabaseClient.js";
+import { useAuth } from "./AuthContext.jsx";
 
 const ProfileContext = createContext(undefined);
 
@@ -19,9 +25,9 @@ export function ProfileProvider({ children }) {
     setLoading(true);
 
     let { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', user.id)
+      .from("profiles")
+      .select("*")
+      .eq("id", user.id)
       .maybeSingle();
 
     if (!error && !data) {
@@ -30,18 +36,18 @@ export function ProfileProvider({ children }) {
       // Create a bare one so Settings/Dashboard always have something
       // to read, rather than every screen needing its own fallback.
       const { data: created, error: insertError } = await supabase
-        .from('profiles')
-        .upsert({ id: user.id }, { onConflict: 'id' })
-        .select('*')
+        .from("profiles")
+        .upsert({ id: user.id }, { onConflict: "id" })
+        .select("*")
         .maybeSingle();
 
       if (insertError) {
-        console.warn('Could not create missing profile row:', insertError);
+        console.warn("Could not create missing profile row:", insertError);
       } else {
         data = created;
       }
     } else if (error) {
-      console.warn('Could not load profile:', error);
+      console.warn("Could not load profile:", error);
     }
 
     setProfile(data ?? null);
@@ -62,7 +68,7 @@ export function ProfileProvider({ children }) {
 export function useProfile() {
   const ctx = useContext(ProfileContext);
   if (ctx === undefined) {
-    throw new Error('useProfile must be used inside a ProfileProvider');
+    throw new Error("useProfile must be used inside a ProfileProvider");
   }
   return ctx;
 }

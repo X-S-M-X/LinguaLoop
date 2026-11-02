@@ -1,24 +1,25 @@
-import { useState } from 'react';
-import { Link, useParams, useSearchParams } from 'react-router-dom';
-import ActivityPicker from '../components/learning/ActivityPicker.jsx';
-import FlashcardActivity from '../components/learning/FlashcardActivity.jsx';
-import QuizActivity from '../components/learning/QuizActivity.jsx';
-import SpeakAndRepeatActivity from '../components/learning/SpeakAndRepeatActivity.jsx';
-import AiCoachActivity from '../components/learning/AiCoachActivity.jsx';
-import AppIcon from '../components/AppIcon.jsx';
-import { useAuth } from '../context/AuthContext.jsx';
-import { useProfile } from '../context/ProfileContext.jsx';
-import { useLessonData } from '../hooks/useLessonData.js';
+import { Link, useParams, useSearchParams } from "react-router-dom";
+import ActivityPicker from "../components/learning/ActivityPicker.jsx";
+import FlashcardActivity from "../components/learning/FlashcardActivity.jsx";
+import QuizActivity from "../components/learning/QuizActivity.jsx";
+import SpeakAndRepeatActivity from "../components/learning/SpeakAndRepeatActivity.jsx";
+import GeneratedQuiz from "../components/learning/GeneratedQuiz.jsx";
+import AppIcon from "../components/AppIcon.jsx";
+import { useAuth } from "../context/AuthContext.jsx";
+import { useProfile } from "../context/ProfileContext.jsx";
+import { useLessonData } from "../hooks/useLessonData.js";
 
-export default function Lesson() {
+function LessonUnit() {
   const { unitId } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuth();
   const { profile } = useProfile();
-  const requestedActivity = searchParams.get('activity');
-  const [activity, setActivity] = useState(
-    ['flashcards', 'quiz', 'speak', 'review', 'ai'].includes(requestedActivity) ? requestedActivity : null
-  );
+  const requestedActivity = searchParams.get("activity");
+  const activity = ["flashcards", "quiz", "speak", "review", "ai"].includes(
+    requestedActivity,
+  )
+    ? requestedActivity
+    : null;
   const {
     unit,
     cards,
@@ -32,12 +33,10 @@ export default function Lesson() {
   const speechCards = cards.filter((card) => card.speech_practice_enabled);
 
   function selectActivity(nextActivity) {
-    setActivity(nextActivity);
     setSearchParams({ activity: nextActivity });
   }
 
   function returnToActivities() {
-    setActivity(null);
     setSearchParams({});
   }
 
@@ -60,19 +59,25 @@ export default function Lesson() {
   if (cards.length === 0) {
     return (
       <section className="lesson-shell">
-        <Link to="/dashboard" className="back-link">← Back to learning path</Link>
+        <Link to="/dashboard" className="back-link">
+          ← Back to learning path
+        </Link>
         <div className="empty-state lesson-empty-state">
           <AppIcon name="learn" size={34} />
           <h1>This unit has no complete cards yet</h1>
-          <p>Each concept needs both a source and target translation before it can be practised.</p>
+          <p>
+            Each concept needs both a source and target translation before it
+            can be practised.
+          </p>
         </div>
       </section>
     );
   }
 
-  if (activity === 'flashcards') {
+  if (activity === "flashcards") {
     return (
       <FlashcardActivity
+        key={`${unitId}:${activity}`}
         unit={unit}
         cards={cards}
         completedIds={completedIds}
@@ -86,9 +91,10 @@ export default function Lesson() {
     );
   }
 
-  if (activity === 'review') {
+  if (activity === "review") {
     return (
       <FlashcardActivity
+        key={`${unitId}:${activity}`}
         unit={unit}
         cards={cards}
         completedIds={completedIds}
@@ -104,9 +110,10 @@ export default function Lesson() {
     );
   }
 
-  if (activity === 'ai') {
+  if (activity === "ai") {
     return (
-      <AiCoachActivity
+      <GeneratedQuiz
+        key={`${unitId}:${activity}`}
         unit={unit}
         cards={cards}
         completedIds={completedIds}
@@ -122,9 +129,10 @@ export default function Lesson() {
     );
   }
 
-  if (activity === 'speak' && speechCards.length > 0) {
+  if (activity === "speak" && speechCards.length > 0) {
     return (
       <SpeakAndRepeatActivity
+        key={`${unitId}:${activity}`}
         unit={unit}
         cards={speechCards}
         completedIds={completedIds}
@@ -138,9 +146,10 @@ export default function Lesson() {
     );
   }
 
-  if (activity === 'quiz') {
+  if (activity === "quiz") {
     return (
       <QuizActivity
+        key={`${unitId}:${activity}`}
         unit={unit}
         cards={cards}
         completedIds={completedIds}
@@ -161,4 +170,9 @@ export default function Lesson() {
       onSelect={selectActivity}
     />
   );
+}
+
+export default function Lesson() {
+  const { unitId } = useParams();
+  return <LessonUnit key={unitId} />;
 }

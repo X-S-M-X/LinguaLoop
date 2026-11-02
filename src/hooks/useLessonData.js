@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useState } from 'react';
-import { supabase } from '../lib/supabaseClient.js';
-import { buildLessonCards } from '../lib/lessonHelpers.js';
+import { useCallback, useEffect, useState } from "react";
+import { supabase } from "../lib/supabaseClient.js";
+import { buildLessonCards } from "../lib/lessonHelpers.js";
 
 export function useLessonData(unitId, userId) {
   const [unit, setUnit] = useState(null);
@@ -18,22 +18,27 @@ export function useLessonData(unitId, userId) {
 
     setLoading(true);
     setError(null);
+    setUnit(null);
+    setCards([]);
 
     const [unitResult, languagesResult, conceptsResult] = await Promise.all([
       supabase
-        .from('units')
-        .select('id, language_id, slug, title, description, sort_order')
-        .eq('id', unitId)
+        .from("units")
+        .select("id, language_id, slug, title, description, sort_order")
+        .eq("id", unitId)
         .maybeSingle(),
-      supabase.from('languages').select('id, code, name, speech_locale'),
+      supabase.from("languages").select("id, code, name, speech_locale"),
       supabase
-        .from('concepts')
-        .select('id, unit_id, slug, difficulty, sort_order, speech_practice_enabled')
-        .eq('unit_id', unitId)
-        .order('sort_order'),
+        .from("concepts")
+        .select(
+          "id, unit_id, slug, difficulty, sort_order, speech_practice_enabled",
+        )
+        .eq("unit_id", unitId)
+        .order("sort_order"),
     ]);
 
-    const firstError = unitResult.error ?? languagesResult.error ?? conceptsResult.error;
+    const firstError =
+      unitResult.error ?? languagesResult.error ?? conceptsResult.error;
     if (firstError) {
       setError(firstError.message);
       setLoading(false);
@@ -41,7 +46,7 @@ export function useLessonData(unitId, userId) {
     }
 
     if (!unitResult.data) {
-      setError('That lesson does not exist.');
+      setError("That lesson does not exist.");
       setLoading(false);
       return;
     }
@@ -53,26 +58,30 @@ export function useLessonData(unitId, userId) {
     let attemptRows = [];
 
     if (conceptIds.length > 0) {
-      const [translationResult, progressResult, attemptResult] = await Promise.all([
-        supabase
-          .from('translations')
-          .select('concept_id, language_id, term, romanization')
-          .in('concept_id', conceptIds),
-        supabase
-          .from('progress')
-          .select('concept_id, completed_at')
-          .eq('user_id', userId)
-          .in('concept_id', conceptIds),
-        supabase
-          .from('learning_attempts')
-          .select('id, concept_id, activity_type, was_correct, score, created_at')
-          .eq('user_id', userId)
-          .in('concept_id', conceptIds)
-          .order('created_at', { ascending: false })
-          .limit(250),
-      ]);
+      const [translationResult, progressResult, attemptResult] =
+        await Promise.all([
+          supabase
+            .from("translations")
+            .select("concept_id, language_id, term, romanization")
+            .in("concept_id", conceptIds),
+          supabase
+            .from("progress")
+            .select("concept_id, completed_at")
+            .eq("user_id", userId)
+            .in("concept_id", conceptIds),
+          supabase
+            .from("learning_attempts")
+            .select(
+              "id, concept_id, activity_type, was_correct, score, created_at",
+            )
+            .eq("user_id", userId)
+            .in("concept_id", conceptIds)
+            .order("created_at", { ascending: false })
+            .limit(250),
+        ]);
 
-      const contentError = translationResult.error ?? progressResult.error ?? attemptResult.error;
+      const contentError =
+        translationResult.error ?? progressResult.error ?? attemptResult.error;
       if (contentError) {
         setError(contentError.message);
         setLoading(false);
@@ -85,9 +94,9 @@ export function useLessonData(unitId, userId) {
     }
 
     const languages = languagesResult.data ?? [];
-    const sourceLanguage = languages.find((language) => language.code === 'en');
+    const sourceLanguage = languages.find((language) => language.code === "en");
     const targetLanguage = languages.find(
-      (language) => language.id === unitResult.data.language_id
+      (language) => language.id === unitResult.data.language_id,
     );
 
     setUnit({
@@ -95,14 +104,20 @@ export function useLessonData(unitId, userId) {
       sourceLanguage: sourceLanguage ?? null,
       language: targetLanguage ?? null,
     });
-    setCards(buildLessonCards({
-      concepts,
-      translations,
-      sourceLanguageId: sourceLanguage?.id,
-      targetLanguageId: targetLanguage?.id,
-    }));
+    setCards(
+      buildLessonCards({
+        concepts,
+        translations,
+        sourceLanguageId: sourceLanguage?.id,
+        targetLanguageId: targetLanguage?.id,
+      }),
+    );
     setCompletedIds(
-      new Set(progressRows.filter((row) => row.completed_at).map((row) => row.concept_id))
+      new Set(
+        progressRows
+          .filter((row) => row.completed_at)
+          .map((row) => row.concept_id),
+      ),
     );
     setAttempts(attemptRows);
     setLoading(false);
@@ -112,50 +127,49 @@ export function useLessonData(unitId, userId) {
     load();
   }, [load]);
 
-  const completeConcept = useCallback(async (conceptId, score = 100) => {
-    const { error: progressError } = await supabase
-      .from('progress')
-      .upsert(
+  const completeConcept = useCallback(
+    async (conceptId, score = 100) => {
+      const { error: progressError } = await supabase.from("progress").upsert(
         {
           user_id: userId,
           concept_id: conceptId,
           completed_at: new Date().toISOString(),
           score,
         },
-        { onConflict: 'user_id,concept_id' }
+        { onConflict: "user_id,concept_id" },
       );
 
-    if (progressError) throw progressError;
+      if (progressError) throw progressError;
 
-    setCompletedIds((current) => {
-      const next = new Set(current);
-      next.add(conceptId);
-      return next;
-    });
-  }, [userId]);
+      setCompletedIds((current) => {
+        const next = new Set(current);
+        next.add(conceptId);
+        return next;
+      });
+    },
+    [userId],
+  );
 
-  const recordAttempt = useCallback(async ({
-    conceptId,
-    activityType,
-    wasCorrect,
-    score = null,
-  }) => {
-    const { data, error: attemptError } = await supabase
-      .from('learning_attempts')
-      .insert({
-        user_id: userId,
-        concept_id: conceptId,
-        activity_type: activityType,
-        was_correct: wasCorrect,
-        score,
-      })
-      .select('id, concept_id, activity_type, was_correct, score, created_at')
-      .single();
+  const recordAttempt = useCallback(
+    async ({ conceptId, activityType, wasCorrect, score = null }) => {
+      const { data, error: attemptError } = await supabase
+        .from("learning_attempts")
+        .insert({
+          user_id: userId,
+          concept_id: conceptId,
+          activity_type: activityType,
+          was_correct: wasCorrect,
+          score,
+        })
+        .select("id, concept_id, activity_type, was_correct, score, created_at")
+        .single();
 
-    if (attemptError) throw attemptError;
-    setAttempts((current) => [data, ...current].slice(0, 250));
-    return data;
-  }, [userId]);
+      if (attemptError) throw attemptError;
+      setAttempts((current) => [data, ...current].slice(0, 250));
+      return data;
+    },
+    [userId],
+  );
 
   return {
     unit,

@@ -1,10 +1,10 @@
-import { Link } from 'react-router-dom';
-import { useEffect, useMemo, useState } from 'react';
-import AppIcon from '../AppIcon.jsx';
-import { useSpeechRecognition } from '../../hooks/useSpeechRecognition.js';
-import { useSpeechSynthesis } from '../../hooks/useSpeechSynthesis.js';
-import { getSessionPercent, shuffleItems } from '../../lib/lessonHelpers.js';
-import { getSpeechMatch } from '../../lib/speechHelpers.js';
+import { Link } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import AppIcon from "../AppIcon.jsx";
+import { useSpeechRecognition } from "../../hooks/useSpeechRecognition.js";
+import { useSpeechSynthesis } from "../../hooks/useSpeechSynthesis.js";
+import { getSessionPercent, shuffleItems } from "../../lib/lessonHelpers.js";
+import { getSpeechMatch } from "../../lib/speechHelpers.js";
 
 const SESSION_SIZE = 5;
 
@@ -19,9 +19,9 @@ export default function SpeakAndRepeatActivity({
   speechRate,
   showRomanization,
 }) {
-  const [sessionCards, setSessionCards] = useState(() => (
-    shuffleItems(cards).slice(0, Math.min(SESSION_SIZE, cards.length))
-  ));
+  const [sessionCards, setSessionCards] = useState(() =>
+    shuffleItems(cards).slice(0, Math.min(SESSION_SIZE, cards.length)),
+  );
   const [cardIndex, setCardIndex] = useState(0);
   const [match, setMatch] = useState(null);
   const [matchedIds, setMatchedIds] = useState(new Set());
@@ -32,17 +32,30 @@ export default function SpeakAndRepeatActivity({
   const recognition = useSpeechRecognition();
 
   const currentCard = sessionCards[cardIndex];
-  const locale = unit.language?.speech_locale || unit.language?.code || 'en-US';
-  const sessionPercent = getSessionPercent(cardIndex, sessionCards.length, finished);
+  const locale = unit.language?.speech_locale || unit.language?.code || "en-US";
+  const sessionPercent = getSessionPercent(
+    cardIndex,
+    sessionCards.length,
+    finished,
+  );
   const resultCopy = useMemo(() => {
     if (!match) return null;
-    if (match.status === 'matched') {
-      return { title: 'Matched!', body: 'The browser heard the expected phrase.' };
+    if (match.status === "matched") {
+      return {
+        title: "Matched!",
+        body: "The browser heard the expected phrase.",
+      };
     }
-    if (match.status === 'almost') {
-      return { title: 'Almost there', body: 'That was close. Listen once more and try again.' };
+    if (match.status === "almost") {
+      return {
+        title: "Almost there",
+        body: "That was close. Listen once more and try again.",
+      };
     }
-    return { title: 'Try again', body: 'The recognised words did not match this phrase yet.' };
+    return {
+      title: "Try again",
+      body: "The recognised words did not match this phrase yet.",
+    };
   }, [match]);
 
   function playCurrentPhrase() {
@@ -51,21 +64,28 @@ export default function SpeakAndRepeatActivity({
   }
 
   async function handleTranscript(nextTranscript) {
-    const nextMatch = getSpeechMatch(currentCard.answer, nextTranscript, locale);
+    const nextMatch = getSpeechMatch(
+      currentCard.answer,
+      nextTranscript,
+      locale,
+    );
     setMatch(nextMatch);
 
     try {
       await onRecordAttempt({
         conceptId: currentCard.id,
-        activityType: 'speech',
-        wasCorrect: nextMatch.status === 'matched',
+        activityType: "speech",
+        wasCorrect: nextMatch.status === "matched",
         score: nextMatch.score,
       });
     } catch (attemptError) {
-      console.warn('Speaking practice continued, but the attempt history was not saved:', attemptError);
+      console.warn(
+        "Speaking practice continued, but the attempt history was not saved:",
+        attemptError,
+      );
     }
 
-    if (nextMatch.status !== 'matched') return;
+    if (nextMatch.status !== "matched") return;
 
     setMatchedIds((current) => new Set(current).add(currentCard.id));
     if (completedIds.has(currentCard.id)) return;
@@ -75,7 +95,9 @@ export default function SpeakAndRepeatActivity({
     try {
       await onCompleteConcept(currentCard.id, nextMatch.score);
     } catch (error) {
-      setSaveError(error.message || 'The phrase matched, but progress could not be saved.');
+      setSaveError(
+        error.message || "The phrase matched, but progress could not be saved.",
+      );
     } finally {
       setSaving(false);
     }
@@ -109,7 +131,9 @@ export default function SpeakAndRepeatActivity({
   function restartSession() {
     synthesis.stop();
     recognition.stopListening();
-    setSessionCards(shuffleItems(cards).slice(0, Math.min(SESSION_SIZE, cards.length)));
+    setSessionCards(
+      shuffleItems(cards).slice(0, Math.min(SESSION_SIZE, cards.length)),
+    );
     setCardIndex(0);
     setMatch(null);
     setMatchedIds(new Set());
@@ -123,7 +147,16 @@ export default function SpeakAndRepeatActivity({
     if (autoplayTts && currentCard && synthesis.supported && !finished) {
       synthesis.speak(currentCard.answer, { locale, rate: speechRate });
     }
-  }, [autoplayTts, cardIndex, currentCard, finished, locale, speechRate, synthesis.speak, synthesis.supported]);
+  }, [
+    autoplayTts,
+    cardIndex,
+    currentCard,
+    finished,
+    locale,
+    speechRate,
+    synthesis.speak,
+    synthesis.supported,
+  ]);
 
   if (finished) {
     return (
@@ -134,14 +167,25 @@ export default function SpeakAndRepeatActivity({
         <p className="eyebrow">Speaking practice complete</p>
         <h1>You finished this round.</h1>
         <p>
-          The browser matched <strong>{matchedIds.size} of {sessionCards.length}</strong> phrases.
-          This is a transcript match, not a full pronunciation score.
+          The browser matched{" "}
+          <strong>
+            {matchedIds.size} of {sessionCards.length}
+          </strong>{" "}
+          phrases. This is a transcript match, not a full pronunciation score.
         </p>
         <div className="lesson-complete__actions">
-          <button type="button" className="button button--secondary" onClick={restartSession}>
+          <button
+            type="button"
+            className="button button--secondary"
+            onClick={restartSession}
+          >
             Practise 5 more
           </button>
-          <button type="button" className="button button--primary" onClick={onChangeActivity}>
+          <button
+            type="button"
+            className="button button--primary"
+            onClick={onChangeActivity}
+          >
             Choose activity <AppIcon name="arrow" size={18} />
           </button>
         </div>
@@ -152,10 +196,16 @@ export default function SpeakAndRepeatActivity({
   return (
     <section className="lesson-shell">
       <div className="lesson-topbar lesson-topbar--actions">
-        <button type="button" className="back-link back-link--button" onClick={onChangeActivity}>
+        <button
+          type="button"
+          className="back-link back-link--button"
+          onClick={onChangeActivity}
+        >
           ← Activities
         </button>
-        <Link to="/dashboard" className="lesson-tool">Leave unit</Link>
+        <Link to="/dashboard" className="lesson-tool">
+          Leave unit
+        </Link>
       </div>
 
       <div className="lesson-progress-row">
@@ -165,7 +215,9 @@ export default function SpeakAndRepeatActivity({
           value={sessionPercent}
           aria-label={`Phrase ${cardIndex + 1} of ${sessionCards.length}`}
         />
-        <strong>{cardIndex + 1}/{sessionCards.length}</strong>
+        <strong>
+          {cardIndex + 1}/{sessionCards.length}
+        </strong>
       </div>
 
       <header className="lesson-heading">
@@ -174,9 +226,11 @@ export default function SpeakAndRepeatActivity({
       </header>
 
       <article className="speak-card">
-        <span>{unit.sourceLanguage?.name || 'English'}</span>
+        <span>{unit.sourceLanguage?.name || "English"}</span>
         <p>{currentCard.prompt}</p>
-        <strong lang={unit.language?.code}>{currentCard.answer}</strong>
+        <strong dir="auto" lang={unit.language?.code}>
+          {currentCard.answer}
+        </strong>
         {showRomanization && currentCard.romanization && (
           <small>{currentCard.romanization}</small>
         )}
@@ -187,14 +241,16 @@ export default function SpeakAndRepeatActivity({
           disabled={!synthesis.supported || synthesis.speaking}
         >
           <AppIcon name="speaker" size={19} />
-          {synthesis.speaking ? 'Speaking…' : 'Listen'}
+          {synthesis.speaking ? "Speaking…" : "Listen"}
         </button>
       </article>
 
       {!synthesis.supported && (
         <div className="notice notice--error" role="alert">
           <strong>Text to speech is unavailable</strong>
-          <span>Try the latest Chrome, Edge or Safari browser for this activity.</span>
+          <span>
+            Try the latest Chrome, Edge or Safari browser for this activity.
+          </span>
         </div>
       )}
 
@@ -203,17 +259,19 @@ export default function SpeakAndRepeatActivity({
           {!match && (
             <button
               type="button"
-              className={`button button--primary microphone-button${recognition.listening ? ' microphone-button--listening' : ''}`}
+              className={`button button--primary microphone-button${recognition.listening ? " microphone-button--listening" : ""}`}
               onClick={startMicrophone}
               disabled={recognition.listening || synthesis.speaking}
             >
               <AppIcon name="mic" size={20} />
-              {recognition.listening ? 'Listening…' : 'Start microphone'}
+              {recognition.listening ? "Listening…" : "Start microphone"}
             </button>
           )}
 
           {recognition.error && (
-            <p className="form__error" role="alert">{recognition.error}</p>
+            <p className="form__error" role="alert">
+              {recognition.error}
+            </p>
           )}
 
           {recognition.transcript && (
@@ -224,15 +282,24 @@ export default function SpeakAndRepeatActivity({
           )}
 
           {match && resultCopy && (
-            <div className={`speech-result speech-result--${match.status}`} aria-live="polite">
+            <div
+              className={`speech-result speech-result--${match.status}`}
+              aria-live="polite"
+            >
               <div>
                 <strong>{resultCopy.title}</strong>
                 <span>{resultCopy.body}</span>
-                {saveError && <span className="quiz-feedback__error">{saveError}</span>}
+                {saveError && (
+                  <span className="quiz-feedback__error">{saveError}</span>
+                )}
               </div>
               <div className="speech-result__actions">
-                {match.status !== 'matched' && (
-                  <button type="button" className="button button--secondary" onClick={retryPhrase}>
+                {match.status !== "matched" && (
+                  <button
+                    type="button"
+                    className="button button--secondary"
+                    onClick={retryPhrase}
+                  >
                     Try again
                   </button>
                 )}
@@ -252,7 +319,7 @@ export default function SpeakAndRepeatActivity({
                   onClick={continueSession}
                   disabled={saving}
                 >
-                  {saving ? 'Saving…' : 'Continue'}
+                  {saving ? "Saving…" : "Continue"}
                   {!saving && <AppIcon name="arrow" size={18} />}
                 </button>
               </div>
@@ -263,17 +330,22 @@ export default function SpeakAndRepeatActivity({
         <div className="speech-fallback">
           <strong>Listen-only mode</strong>
           <p>
-            This browser cannot compare microphone speech. Listen, repeat the phrase aloud,
-            then continue without a saved speech score.
+            This browser cannot compare microphone speech. Listen, repeat the
+            phrase aloud, then continue without a saved speech score.
           </p>
-          <button type="button" className="button button--primary" onClick={continueSession}>
+          <button
+            type="button"
+            className="button button--primary"
+            onClick={continueSession}
+          >
             I repeated it <AppIcon name="arrow" size={18} />
           </button>
         </div>
       )}
 
       <p className="lesson-help">
-        Your browser or its speech service processes recognition. LinguaLoop does not upload or store microphone audio.
+        Your browser or its speech service processes recognition. LinguaLoop
+        does not upload or store microphone audio.
       </p>
     </section>
   );

@@ -1,18 +1,19 @@
-import { useEffect, useState } from 'react';
-import AppIcon from '../components/AppIcon.jsx';
-import { useAuth } from '../context/AuthContext.jsx';
-import { useProfile } from '../context/ProfileContext.jsx';
-import { supabase } from '../lib/supabaseClient.js';
+import { useEffect, useState } from "react";
+import { uploadAvatar } from "../lib/avatarUpload.js";
+import AppIcon from "../components/AppIcon.jsx";
+import { useAuth } from "../context/AuthContext.jsx";
+import { useProfile } from "../context/ProfileContext.jsx";
+import { supabase } from "../lib/supabaseClient.js";
 import {
   getProfileInitials,
   isValidUsername,
   normalizeUsername,
-} from '../lib/profileHelpers.js';
+} from "../lib/profileHelpers.js";
 import {
   isSpeechRecognitionSupported,
   isSpeechSynthesisSupported,
   SPEECH_RATE_OPTIONS,
-} from '../lib/speechHelpers.js';
+} from "../lib/speechHelpers.js";
 
 const DAILY_GOALS = [5, 10, 15, 20];
 
@@ -20,11 +21,11 @@ export default function Settings() {
   const { user } = useAuth();
   const { profile, loading, refreshProfile } = useProfile();
 
-  const [displayName, setDisplayName] = useState('');
-  const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
-  const [nativeLanguageId, setNativeLanguageId] = useState('');
-  const [learningLanguageId, setLearningLanguageId] = useState('');
+  const [displayName, setDisplayName] = useState("");
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [nativeLanguageId, setNativeLanguageId] = useState("");
+  const [learningLanguageId, setLearningLanguageId] = useState("");
   const [dailyGoalMinutes, setDailyGoalMinutes] = useState(10);
   const [showRomanization, setShowRomanization] = useState(true);
   const [autoplayTts, setAutoplayTts] = useState(false);
@@ -39,10 +40,10 @@ export default function Settings() {
 
   useEffect(() => {
     if (profile) {
-      setDisplayName(profile.display_name || '');
-      setUsername(profile.username || '');
-      setNativeLanguageId(profile.native_language_id || '');
-      setLearningLanguageId(profile.learning_language_id || '');
+      setDisplayName(profile.display_name || "");
+      setUsername(profile.username || "");
+      setNativeLanguageId(profile.native_language_id || "");
+      setLearningLanguageId(profile.learning_language_id || "");
       setDailyGoalMinutes(profile.daily_goal_minutes ?? 10);
       setShowRomanization(profile.show_romanization ?? true);
       setAutoplayTts(profile.autoplay_tts ?? false);
@@ -55,74 +56,43 @@ export default function Settings() {
 
   useEffect(() => {
     supabase
-      .from('languages')
-      .select('id, code, name')
-      .order('name')
+      .from("languages")
+      .select("id, code, name")
+      .order("name")
       .then(({ data, error: languageError }) => {
         if (languageError) {
-          setError('We couldn’t load the language options. Please refresh and try again.');
+          setError(
+            "We couldn’t load the language options. Please refresh and try again.",
+          );
           return;
         }
         setLanguages(data ?? []);
       });
   }, []);
 
-  const learningLanguages = languages.filter((language) => language.code !== 'en');
+  const learningLanguages = languages.filter(
+    (language) => language.code !== "en",
+  );
 
   async function handleAvatarChange(event) {
     const file = event.target.files[0];
     if (!file || !user) return;
 
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-    const maxFileSize = 5 * 1024 * 1024;
-
-    if (!allowedTypes.includes(file.type)) {
-      setError('Choose a JPEG, PNG, WebP, or GIF image.');
-      event.target.value = '';
-      return;
-    }
-
-    if (file.size > maxFileSize) {
-      setError('Profile photos must be 5 MB or smaller.');
-      event.target.value = '';
-      return;
-    }
-
+    event.target.value = "";
     setError(null);
     setSaved(false);
     setUploading(true);
-
-    const filePath = `${user.id}/avatar`;
-    const { error: uploadError } = await supabase.storage
-      .from('avatars')
-      .upload(filePath, file, {
-        upsert: true,
-        contentType: file.type,
-        cacheControl: '3600',
-      });
-
-    if (uploadError) {
+    try {
+      await uploadAvatar(supabase, user.id, file);
+      await refreshProfile();
+      setSaved(true);
+    } catch (err) {
+      setError(
+        err.message || "Your picture could not be uploaded. Please try again.",
+      );
+    } finally {
       setUploading(false);
-      setError(uploadError.message);
-      return;
     }
-
-    const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(filePath);
-    const avatarUrl = `${urlData.publicUrl}?v=${Date.now()}`;
-    const { error: updateError } = await supabase
-      .from('profiles')
-      .update({ avatar_url: avatarUrl })
-      .eq('id', user.id);
-
-    setUploading(false);
-
-    if (updateError) {
-      setError(updateError.message);
-      return;
-    }
-
-    setSaved(true);
-    await refreshProfile();
   }
 
   async function handleSave(event) {
@@ -138,21 +108,23 @@ export default function Settings() {
 
     if (!isValidUsername(normalizedUsername)) {
       setSaving(false);
-      setError('Use 3 to 30 characters. Start with a letter or number, then use letters, numbers, dots, dashes, or underscores.');
+      setError(
+        "Use 3 to 30 characters. Start with a letter or number, then use letters, numbers, dots, dashes, or underscores.",
+      );
       return;
     }
 
     if (!learningLanguageId) {
       setSaving(false);
-      setError('Choose the language you want to learn.');
+      setError("Choose the language you want to learn.");
       return;
     }
 
     if (normalizedUsername !== profile?.username) {
-      const { data: isAvailable, error: usernameCheckError } = await supabase.rpc(
-        'is_username_available',
-        { check_username: normalizedUsername }
-      );
+      const { data: isAvailable, error: usernameCheckError } =
+        await supabase.rpc("is_username_available", {
+          check_username: normalizedUsername,
+        });
 
       if (usernameCheckError) {
         setSaving(false);
@@ -162,14 +134,16 @@ export default function Settings() {
 
       if (!isAvailable) {
         setSaving(false);
-        setError('That username is already taken. Please choose another one.');
+        setError("That username is already taken. Please choose another one.");
         return;
       }
     }
 
     let emailChangePending = false;
     if (email.trim().toLowerCase() !== user.email?.toLowerCase()) {
-      const { error: emailError } = await supabase.auth.updateUser({ email: email.trim() });
+      const { error: emailError } = await supabase.auth.updateUser({
+        email: email.trim(),
+      });
       if (emailError) {
         setSaving(false);
         setError(emailError.message);
@@ -191,9 +165,9 @@ export default function Settings() {
     };
 
     const { error: updateError } = await supabase
-      .from('profiles')
-      .upsert({ id: user.id, ...profileUpdates }, { onConflict: 'id' })
-      .select('*')
+      .from("profiles")
+      .upsert({ id: user.id, ...profileUpdates }, { onConflict: "id" })
+      .select("*")
       .maybeSingle();
 
     setSaving(false);
@@ -215,13 +189,20 @@ export default function Settings() {
       <header className="settings-header">
         <p className="eyebrow">Personalise LinguaLoop</p>
         <h1>Settings</h1>
-        <p>Manage your public profile and decide how your learning path works.</p>
+        <p>
+          Manage your public profile and decide how your learning path works.
+        </p>
       </header>
 
       <form className="settings-form" onSubmit={handleSave}>
-        <section className="settings-panel" aria-labelledby="profile-settings-title">
+        <section
+          className="settings-panel"
+          aria-labelledby="profile-settings-title"
+        >
           <div className="settings-panel__heading">
-            <span className="settings-panel__icon"><AppIcon name="profile" /></span>
+            <span className="settings-panel__icon">
+              <AppIcon name="profile" />
+            </span>
             <div>
               <h2 id="profile-settings-title">Profile</h2>
               <p>The details used across your account.</p>
@@ -233,12 +214,14 @@ export default function Settings() {
               {profile?.avatar_url ? (
                 <img src={profile.avatar_url} alt="Your profile" />
               ) : (
-                <span>{getProfileInitials(profile?.display_name, user?.email)}</span>
+                <span>
+                  {getProfileInitials(profile?.display_name, user?.email)}
+                </span>
               )}
             </div>
             <div>
               <label className="button button--outline button--small settings-avatar-upload">
-                {uploading ? 'Uploading…' : 'Change photo'}
+                {uploading ? "Uploading…" : "Change photo"}
                 <input
                   type="file"
                   accept="image/jpeg,image/png,image/webp,image/gif"
@@ -300,16 +283,23 @@ export default function Settings() {
               >
                 <option value="">Not set</option>
                 {languages.map((language) => (
-                  <option key={language.id} value={language.id}>{language.name}</option>
+                  <option key={language.id} value={language.id}>
+                    {language.name}
+                  </option>
                 ))}
               </select>
             </label>
           </div>
         </section>
 
-        <section className="settings-panel" aria-labelledby="learning-settings-title">
+        <section
+          className="settings-panel"
+          aria-labelledby="learning-settings-title"
+        >
           <div className="settings-panel__heading">
-            <span className="settings-panel__icon settings-panel__icon--purple"><AppIcon name="target" /></span>
+            <span className="settings-panel__icon settings-panel__icon--purple">
+              <AppIcon name="target" />
+            </span>
             <div>
               <h2 id="learning-settings-title">Learning preferences</h2>
               <p>These choices update your dashboard and lessons.</p>
@@ -324,9 +314,13 @@ export default function Settings() {
                 onChange={(event) => setLearningLanguageId(event.target.value)}
                 required
               >
-                <option value="" disabled>Choose a language</option>
+                <option value="" disabled>
+                  Choose a language
+                </option>
                 {learningLanguages.map((language) => (
-                  <option key={language.id} value={language.id}>{language.name}</option>
+                  <option key={language.id} value={language.id}>
+                    {language.name}
+                  </option>
                 ))}
               </select>
             </label>
@@ -338,7 +332,9 @@ export default function Settings() {
                 onChange={(event) => setDailyGoalMinutes(event.target.value)}
               >
                 {DAILY_GOALS.map((minutes) => (
-                  <option key={minutes} value={minutes}>{minutes} minutes</option>
+                  <option key={minutes} value={minutes}>
+                    {minutes} minutes
+                  </option>
                 ))}
               </select>
             </label>
@@ -347,7 +343,9 @@ export default function Settings() {
           <label className="toggle-row">
             <span>
               <strong>Show pronunciation hints</strong>
-              <small>Display Latin pronunciation hints when the lesson provides them.</small>
+              <small>
+                Display Latin pronunciation hints when the lesson provides them.
+              </small>
             </span>
             <input
               type="checkbox"
@@ -357,7 +355,10 @@ export default function Settings() {
           </label>
         </section>
 
-        <section className="settings-panel" aria-labelledby="audio-settings-title">
+        <section
+          className="settings-panel"
+          aria-labelledby="audio-settings-title"
+        >
           <div className="settings-panel__heading">
             <span className="settings-panel__icon settings-panel__icon--gold">
               <AppIcon name="speaker" />
@@ -377,7 +378,12 @@ export default function Settings() {
               >
                 {SPEECH_RATE_OPTIONS.map((rate) => (
                   <option key={rate} value={rate}>
-                    {rate === 0.75 ? 'Slower' : rate === 1 ? 'Normal' : 'Faster'} ({rate}x)
+                    {rate === 0.75
+                      ? "Slower"
+                      : rate === 1
+                        ? "Normal"
+                        : "Faster"}{" "}
+                    ({rate}x)
                   </option>
                 ))}
               </select>
@@ -387,7 +393,9 @@ export default function Settings() {
           <label className="toggle-row">
             <span>
               <strong>Automatically speak answers</strong>
-              <small>Play the learning-language text when it becomes visible.</small>
+              <small>
+                Play the learning-language text when it becomes visible.
+              </small>
             </span>
             <input
               type="checkbox"
@@ -397,36 +405,63 @@ export default function Settings() {
           </label>
 
           <div className="browser-support" aria-label="Browser speech support">
-            <span className={isSpeechSynthesisSupported() ? 'is-supported' : 'is-unsupported'}>
-              <AppIcon name={isSpeechSynthesisSupported() ? 'check' : 'speaker'} size={16} />
-              Text to speech {isSpeechSynthesisSupported() ? 'available' : 'unavailable'}
+            <span
+              className={
+                isSpeechSynthesisSupported() ? "is-supported" : "is-unsupported"
+              }
+            >
+              <AppIcon
+                name={isSpeechSynthesisSupported() ? "check" : "speaker"}
+                size={16}
+              />
+              Text to speech{" "}
+              {isSpeechSynthesisSupported() ? "available" : "unavailable"}
             </span>
-            <span className={isSpeechRecognitionSupported() ? 'is-supported' : 'is-unsupported'}>
-              <AppIcon name={isSpeechRecognitionSupported() ? 'check' : 'mic'} size={16} />
-              Microphone matching {isSpeechRecognitionSupported() ? 'available' : 'unavailable'}
+            <span
+              className={
+                isSpeechRecognitionSupported()
+                  ? "is-supported"
+                  : "is-unsupported"
+              }
+            >
+              <AppIcon
+                name={isSpeechRecognitionSupported() ? "check" : "mic"}
+                size={16}
+              />
+              Microphone matching{" "}
+              {isSpeechRecognitionSupported() ? "available" : "unavailable"}
             </span>
           </div>
           <p className="settings-privacy-note">
-            Microphone access is requested only when you start speaking practice. Your browser
-            or its speech service processes recognition. LinguaLoop does not upload or store audio.
+            Microphone access is requested only when you start speaking
+            practice. Your browser or its speech service processes recognition.
+            LinguaLoop does not upload or store audio.
           </p>
         </section>
 
-        <section className="settings-panel settings-panel--ai" aria-labelledby="ai-settings-title">
+        <section
+          className="settings-panel settings-panel--ai"
+          aria-labelledby="ai-settings-title"
+        >
           <div className="settings-panel__heading">
             <span className="settings-panel__icon settings-panel__icon--ai">
               <AppIcon name="spark" />
             </span>
             <div>
-              <h2 id="ai-settings-title">Adaptive AI coach</h2>
-              <p>Generate a focused five-card session from your saved practice history.</p>
+              <h2 id="ai-settings-title">AI Quiz</h2>
+              <p>
+                Try fresh situational questions with a difficulty level you
+                choose.
+              </p>
             </div>
           </div>
 
           <label className="toggle-row">
             <span>
-              <strong>Use AI-powered coaching</strong>
-              <small>This is off by default. You can turn it off again at any time.</small>
+              <strong>Enable AI-generated quizzes</strong>
+              <small>
+                This is off by default. You can turn it off again at any time.
+              </small>
             </span>
             <input
               type="checkbox"
@@ -436,24 +471,36 @@ export default function Settings() {
           </label>
 
           <p className="settings-privacy-note settings-privacy-note--ai">
-            When enabled, LinguaLoop sends card text plus anonymous correct and incorrect counts
-            to the configured AI service. Your name, username, email, avatar, and microphone audio
-            are not included. Course answers and completion rules remain controlled by LinguaLoop.
+            When enabled, LinguaLoop sends card text plus anonymous correct and
+            incorrect counts to the configured AI service. Your name, username,
+            email, avatar, and microphone audio are not included. Course answers
+            and completion rules remain controlled by LinguaLoop.
           </p>
         </section>
 
         <div className="settings-savebar">
           <div aria-live="polite">
-            {error && <p className="form__error" role="alert">{error}</p>}
-            {saved && !emailConfirmPending && <p className="form__success">Your changes are saved.</p>}
+            {error && (
+              <p className="form__error" role="alert">
+                {error}
+              </p>
+            )}
+            {saved && !emailConfirmPending && (
+              <p className="form__success">Your changes are saved.</p>
+            )}
             {saved && emailConfirmPending && (
               <p className="form__success">
-                Saved. Confirm the message sent to your new email before it becomes your login.
+                Saved. Confirm the message sent to your new email before it
+                becomes your login.
               </p>
             )}
           </div>
-          <button type="submit" className="button button--primary" disabled={saving || uploading}>
-            {saving ? 'Saving…' : 'Save changes'}
+          <button
+            type="submit"
+            className="button button--primary"
+            disabled={saving || uploading}
+          >
+            {saving ? "Saving…" : "Save changes"}
           </button>
         </div>
       </form>

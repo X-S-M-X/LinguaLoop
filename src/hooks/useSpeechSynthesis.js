@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from 'react';
-import { isSpeechSynthesisSupported } from '../lib/speechHelpers.js';
+import { useCallback, useEffect, useState } from "react";
+import { isSpeechSynthesisSupported } from "../lib/speechHelpers.js";
 
 export function useSpeechSynthesis() {
   const [speaking, setSpeaking] = useState(false);
@@ -17,7 +17,7 @@ export function useSpeechSynthesis() {
     window.speechSynthesis.cancel();
 
     const utterance = new window.SpeechSynthesisUtterance(text);
-    utterance.lang = locale || 'en-US';
+    utterance.lang = locale || "en-US";
     utterance.rate = Number(rate) || 1;
     utterance.onstart = () => setSpeaking(true);
     utterance.onend = () => setSpeaking(false);

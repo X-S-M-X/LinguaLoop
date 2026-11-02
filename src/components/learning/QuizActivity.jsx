@@ -1,7 +1,10 @@
-import { Link } from 'react-router-dom';
-import { useState } from 'react';
-import AppIcon from '../AppIcon.jsx';
-import { buildQuizQuestions, getSessionPercent } from '../../lib/lessonHelpers.js';
+import { Link } from "react-router-dom";
+import { useState, useRef } from "react";
+import AppIcon from "../AppIcon.jsx";
+import {
+  buildQuizQuestions,
+  getSessionPercent,
+} from "../../lib/lessonHelpers.js";
 
 export default function QuizActivity({
   unit,
@@ -11,6 +14,7 @@ export default function QuizActivity({
   onRecordAttempt,
   onChangeActivity,
 }) {
+  const busy = useRef(false);
   const [questions, setQuestions] = useState(() => buildQuizQuestions(cards));
   const [questionIndex, setQuestionIndex] = useState(0);
   const [selectedChoiceId, setSelectedChoiceId] = useState(null);
@@ -22,7 +26,11 @@ export default function QuizActivity({
   const [saveError, setSaveError] = useState(null);
 
   const currentQuestion = questions[questionIndex];
-  const sessionPercent = getSessionPercent(questionIndex, questions.length, finished);
+  const sessionPercent = getSessionPercent(
+    questionIndex,
+    questions.length,
+    finished,
+  );
 
   function restartQuiz() {
     setQuestions(buildQuizQuestions(cards));
@@ -46,7 +54,10 @@ export default function QuizActivity({
       await onCompleteConcept(currentQuestion.id, 100);
       return true;
     } catch (error) {
-      setSaveError(error.message || 'Your answer was correct, but progress could not be saved.');
+      setSaveError(
+        error.message ||
+          "Your answer was correct, but progress could not be saved.",
+      );
       return false;
     } finally {
       setSaving(false);
@@ -54,7 +65,9 @@ export default function QuizActivity({
   }
 
   async function chooseAnswer(choiceId) {
-    if (selectedChoiceId || saving) return;
+    if (selectedChoiceId || busy.current) return;
+    busy.current = true;
+    setSaving(true);
 
     const isCorrect = choiceId === currentQuestion.id;
     setSelectedChoiceId(choiceId);
@@ -63,21 +76,28 @@ export default function QuizActivity({
     try {
       await onRecordAttempt({
         conceptId: currentQuestion.id,
-        activityType: 'quiz',
+        activityType: "quiz",
         wasCorrect: isCorrect,
         score: isCorrect ? 100 : 0,
       });
     } catch (attemptError) {
-      console.warn('The quiz continued, but the attempt history was not saved:', attemptError);
+      console.warn(
+        "The quiz continued, but the attempt history was not saved:",
+        attemptError,
+      );
     }
 
     if (isCorrect) {
       setCorrectIds((current) => new Set(current).add(currentQuestion.id));
       await saveCorrectAnswer();
+      busy.current = false;
+      setSaving(false);
       return;
     }
 
     setIncorrectIds((current) => new Set(current).add(currentQuestion.id));
+    busy.current = false;
+    setSaving(false);
   }
 
   async function continueQuiz() {
@@ -108,20 +128,32 @@ export default function QuizActivity({
           <AppIcon name="quiz" size={42} />
         </span>
         <p className="eyebrow">Quiz complete</p>
-        <h1>{score >= 80 ? 'Strong result!' : 'Good practice. Keep looping.'}</h1>
+        <h1>
+          {score >= 80 ? "Strong result!" : "Good practice. Keep looping."}
+        </h1>
         <div className="quiz-score" aria-label={`Quiz score ${score}%`}>
           <strong>{score}%</strong>
-          <span>{correctIds.size} correct · {incorrectIds.size} to review</span>
+          <span>
+            {correctIds.size} correct · {incorrectIds.size} to review
+          </span>
         </div>
         <p>
-          Correct answers were saved to your concept progress. Incorrect answers did not mark
-          those concepts as complete.
+          Correct answers were saved to your concept progress. Incorrect answers
+          did not mark those concepts as complete.
         </p>
         <div className="lesson-complete__actions">
-          <button type="button" className="button button--secondary" onClick={restartQuiz}>
+          <button
+            type="button"
+            className="button button--secondary"
+            onClick={restartQuiz}
+          >
             Try quiz again
           </button>
-          <button type="button" className="button button--primary" onClick={onChangeActivity}>
+          <button
+            type="button"
+            className="button button--primary"
+            onClick={onChangeActivity}
+          >
             Choose activity <AppIcon name="arrow" size={18} />
           </button>
         </div>
@@ -132,10 +164,16 @@ export default function QuizActivity({
   return (
     <section className="lesson-shell">
       <div className="lesson-topbar lesson-topbar--actions">
-        <button type="button" className="back-link back-link--button" onClick={onChangeActivity}>
+        <button
+          type="button"
+          className="back-link back-link--button"
+          onClick={onChangeActivity}
+        >
           ← Activities
         </button>
-        <Link to="/dashboard" className="lesson-tool">Leave unit</Link>
+        <Link to="/dashboard" className="lesson-tool">
+          Leave unit
+        </Link>
       </div>
 
       <div className="lesson-progress-row">
@@ -145,7 +183,9 @@ export default function QuizActivity({
           value={sessionPercent}
           aria-label={`Question ${questionIndex + 1} of ${questions.length}`}
         />
-        <strong>{questionIndex + 1}/{questions.length}</strong>
+        <strong>
+          {questionIndex + 1}/{questions.length}
+        </strong>
       </div>
 
       <header className="lesson-heading">
@@ -154,19 +194,22 @@ export default function QuizActivity({
       </header>
 
       <article className="quiz-prompt">
-        <span>{unit.sourceLanguage?.name || 'English'}</span>
-        <strong lang={unit.sourceLanguage?.code}>{currentQuestion.prompt}</strong>
+        <span>{unit.sourceLanguage?.name || "English"}</span>
+        <strong dir="auto" lang={unit.sourceLanguage?.code}>
+          {currentQuestion.prompt}
+        </strong>
       </article>
 
       <div className="quiz-options" aria-label="Answer choices">
         {currentQuestion.choices.map((choice, index) => {
-          const showCorrect = selectedChoiceId && choice.id === currentQuestion.id;
+          const showCorrect =
+            selectedChoiceId && choice.id === currentQuestion.id;
           const showWrong = selectedChoiceId === choice.id && !answerWasCorrect;
           const stateClass = showCorrect
-            ? ' quiz-option--correct'
+            ? " quiz-option--correct"
             : showWrong
-              ? ' quiz-option--wrong'
-              : '';
+              ? " quiz-option--wrong"
+              : "";
 
           return (
             <button
@@ -177,7 +220,9 @@ export default function QuizActivity({
               disabled={Boolean(selectedChoiceId) || saving}
             >
               <span>{index + 1}</span>
-              <strong lang={unit.language?.code}>{choice.label}</strong>
+              <strong dir="auto" lang={unit.language?.code}>
+                {choice.label}
+              </strong>
               {showCorrect && <AppIcon name="check" size={20} />}
             </button>
           );
@@ -186,17 +231,19 @@ export default function QuizActivity({
 
       {selectedChoiceId && (
         <div
-          className={`quiz-feedback${answerWasCorrect ? ' quiz-feedback--correct' : ' quiz-feedback--wrong'}`}
+          className={`quiz-feedback${answerWasCorrect ? " quiz-feedback--correct" : " quiz-feedback--wrong"}`}
           aria-live="polite"
         >
           <div>
-            <strong>{answerWasCorrect ? 'Correct!' : 'Not quite'}</strong>
+            <strong>{answerWasCorrect ? "Correct!" : "Not quite"}</strong>
             <span>
               {answerWasCorrect
-                ? 'Your learned progress is up to date.'
+                ? "Your learned progress is up to date."
                 : `The correct answer is ${currentQuestion.answer}.`}
             </span>
-            {saveError && <span className="quiz-feedback__error">{saveError}</span>}
+            {saveError && (
+              <span className="quiz-feedback__error">{saveError}</span>
+            )}
           </div>
           <button
             type="button"
@@ -204,7 +251,7 @@ export default function QuizActivity({
             onClick={continueQuiz}
             disabled={saving}
           >
-            {saving ? 'Saving…' : saveError ? 'Retry save' : 'Continue'}
+            {saving ? "Saving…" : saveError ? "Retry save" : "Continue"}
             {!saving && !saveError && <AppIcon name="arrow" size={18} />}
           </button>
         </div>

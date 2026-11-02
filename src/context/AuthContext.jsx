@@ -1,5 +1,5 @@
-import { createContext, useContext, useEffect, useState } from 'react';
-import { supabase } from '../lib/supabaseClient.js';
+import { createContext, useContext, useEffect, useState } from "react";
+import { supabase } from "../lib/supabaseClient.js";
 
 const AuthContext = createContext(undefined);
 
@@ -13,9 +13,11 @@ export function AuthProvider({ children }) {
       setLoading(false);
     });
 
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, newSession) => {
-      setSession(newSession);
-    });
+    const { data: listener } = supabase.auth.onAuthStateChange(
+      (_event, newSession) => {
+        setSession(newSession);
+      },
+    );
 
     return () => {
       listener.subscription.unsubscribe();
@@ -35,7 +37,7 @@ export function AuthProvider({ children }) {
 export function useAuth() {
   const ctx = useContext(AuthContext);
   if (ctx === undefined) {
-    throw new Error('useAuth must be used inside an AuthProvider');
+    throw new Error("useAuth must be used inside an AuthProvider");
   }
   return ctx;
 }

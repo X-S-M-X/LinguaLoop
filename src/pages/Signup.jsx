@@ -1,15 +1,15 @@
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { supabase } from '../lib/supabaseClient.js';
-import { useAuth } from '../context/AuthContext.jsx';
-import { isValidUsername, normalizeUsername } from '../lib/profileHelpers.js';
+import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { supabase } from "../lib/supabaseClient.js";
+import { useAuth } from "../context/AuthContext.jsx";
+import { isValidUsername, normalizeUsername } from "../lib/profileHelpers.js";
 
 export default function Signup() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [username, setUsername] = useState("");
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [checkEmail, setCheckEmail] = useState(false);
@@ -23,7 +23,9 @@ export default function Signup() {
 
     const normalizedUsername = normalizeUsername(username);
     if (!isValidUsername(normalizedUsername)) {
-      setError('Use 3 to 30 characters. Start with a letter or number, then use letters, numbers, dots, dashes, or underscores.');
+      setError(
+        "Use 3 to 30 characters. Start with a letter or number, then use letters, numbers, dots, dashes, or underscores.",
+      );
       setLoading(false);
       return;
     }
@@ -32,19 +34,19 @@ export default function Signup() {
     // availability is checked through a narrow security-definer function.
     // The database's unique index remains the final protection against races.
     const { data: isAvailable, error: usernameCheckError } = await supabase.rpc(
-      'is_username_available',
-      { check_username: normalizedUsername }
+      "is_username_available",
+      { check_username: normalizedUsername },
     );
 
     if (usernameCheckError) {
       setLoading(false);
-      setError('We could not check that username. Please try again.');
+      setError("We could not check that username. Please try again.");
       return;
     }
 
     if (!isAvailable) {
       setLoading(false);
-      setError('That username is already taken. Please choose another one.');
+      setError("That username is already taken. Please choose another one.");
       return;
     }
 
@@ -52,7 +54,7 @@ export default function Signup() {
     // The Pages 404 fallback restores this client-side route after confirmation.
     const redirectUrl = new URL(
       `${import.meta.env.BASE_URL}dashboard`,
-      window.location.origin
+      window.location.origin,
     ).toString();
 
     const { data, error: signUpError } = await supabase.auth.signUp({
@@ -71,9 +73,9 @@ export default function Signup() {
 
     if (signUpError) {
       setError(
-        signUpError.message?.toLowerCase().includes('database error')
-          ? 'We could not create that account. The username may have just been taken; please try another one.'
-          : signUpError.message
+        signUpError.message?.toLowerCase().includes("database error")
+          ? "We could not create that account. The username may have just been taken; please try another one."
+          : signUpError.message,
       );
       return;
     }
@@ -83,7 +85,7 @@ export default function Signup() {
       return;
     }
 
-    navigate('/dashboard');
+    navigate("/dashboard");
   }
 
   if (authLoading) {
@@ -115,8 +117,8 @@ export default function Signup() {
           <p className="eyebrow">Almost there</p>
           <h1>Check your email</h1>
           <p className="auth-card__text">
-            If this address can be registered, a confirmation link will arrive at{' '}
-            <strong>{email}</strong>. Open it to confirm your account.
+            If this address can be registered, a confirmation link will arrive
+            at <strong>{email}</strong>. Open it to confirm your account.
           </p>
           <p className="form__switch">
             <Link to="/login">Go to login</Link>
@@ -131,7 +133,9 @@ export default function Signup() {
       <div className="card auth-card">
         <p className="eyebrow">Start your journey</p>
         <h1>Create your LinguaLoop account</h1>
-        <p className="auth-card__text">Set up your profile and begin building your language habits.</p>
+        <p className="auth-card__text">
+          Set up your profile and begin building your language habits.
+        </p>
 
         <form className="form auth-form" onSubmit={handleSubmit}>
           <label>
@@ -176,7 +180,7 @@ export default function Signup() {
           {error && <p className="form__error">{error}</p>}
 
           <button type="submit" disabled={loading}>
-            {loading ? 'Creating account…' : 'Create account'}
+            {loading ? "Creating account…" : "Create account"}
           </button>
         </form>
 

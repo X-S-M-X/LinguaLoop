@@ -1,10 +1,10 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { supabase } from '../lib/supabaseClient.js';
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { supabase } from "../lib/supabaseClient.js";
 import {
   getCourseProgress,
   getNextUnit,
   getUnitProgress,
-} from '../lib/learningHelpers.js';
+} from "../lib/learningHelpers.js";
 
 export function useLearningOverview(userId, learningLanguageId) {
   const [language, setLanguage] = useState(null);
@@ -31,15 +31,15 @@ export function useLearningOverview(userId, learningLanguageId) {
 
     const [languageResult, unitsResult] = await Promise.all([
       supabase
-        .from('languages')
-        .select('id, code, name')
-        .eq('id', learningLanguageId)
+        .from("languages")
+        .select("id, code, name")
+        .eq("id", learningLanguageId)
         .maybeSingle(),
       supabase
-        .from('units')
-        .select('id, language_id, slug, title, description, sort_order')
-        .eq('language_id', learningLanguageId)
-        .order('sort_order'),
+        .from("units")
+        .select("id, language_id, slug, title, description, sort_order")
+        .eq("language_id", learningLanguageId)
+        .order("sort_order"),
     ]);
 
     const firstError = languageResult.error ?? unitsResult.error;
@@ -55,10 +55,10 @@ export function useLearningOverview(userId, learningLanguageId) {
 
     if (unitIds.length > 0) {
       const conceptsResult = await supabase
-        .from('concepts')
-        .select('id, unit_id, slug, difficulty, sort_order')
-        .in('unit_id', unitIds)
-        .order('sort_order');
+        .from("concepts")
+        .select("id, unit_id, slug, difficulty, sort_order")
+        .in("unit_id", unitIds)
+        .order("sort_order");
 
       if (conceptsResult.error) {
         setError(conceptsResult.error.message);
@@ -76,16 +76,16 @@ export function useLearningOverview(userId, learningLanguageId) {
     if (conceptIds.length > 0) {
       const [progressResult, attemptResult] = await Promise.all([
         supabase
-          .from('progress')
-          .select('concept_id, completed_at, score')
-          .eq('user_id', userId)
-          .in('concept_id', conceptIds),
+          .from("progress")
+          .select("concept_id, completed_at, score")
+          .eq("user_id", userId)
+          .in("concept_id", conceptIds),
         supabase
-          .from('learning_attempts')
-          .select('concept_id, was_correct, activity_type, created_at')
-          .eq('user_id', userId)
-          .in('concept_id', conceptIds)
-          .order('created_at', { ascending: false })
+          .from("learning_attempts")
+          .select("concept_id, was_correct, activity_type, created_at")
+          .eq("user_id", userId)
+          .in("concept_id", conceptIds)
+          .order("created_at", { ascending: false })
           .limit(500),
       ]);
 
@@ -114,17 +114,17 @@ export function useLearningOverview(userId, learningLanguageId) {
 
   const courseProgress = useMemo(
     () => getCourseProgress(units, concepts, progressRows),
-    [units, concepts, progressRows]
+    [units, concepts, progressRows],
   );
 
   const nextUnit = useMemo(
     () => getNextUnit(units, concepts, progressRows),
-    [units, concepts, progressRows]
+    [units, concepts, progressRows],
   );
 
   const unitProgress = useCallback(
     (unitId) => getUnitProgress(unitId, concepts, progressRows),
-    [concepts, progressRows]
+    [concepts, progressRows],
   );
 
   const practiceSummary = useMemo(() => {

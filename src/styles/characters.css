@@ -1,0 +1,196 @@
+@font-face {
+  font-family: "LoopScript";
+  font-style: normal;
+  font-weight: 400 900;
+  font-display: swap;
+  src: url("../../public/fonts/phrases-0.woff") format("woff");
+  unicode-range: U+89c1;
+}
+@font-face {
+  font-family: "LoopScript";
+  font-style: normal;
+  font-weight: 400 900;
+  font-display: swap;
+  src: url("../../public/fonts/phrases-1.woff") format("woff");
+  unicode-range: U+6c14;
+}
+@font-face {
+  font-family: "LoopScript";
+  font-style: normal;
+  font-weight: 400 900;
+  font-display: swap;
+  src: url("../../public/fonts/phrases-2.woff") format("woff");
+  unicode-range: U+665a;
+}
+@font-face {
+  font-family: "LoopScript";
+  font-style: normal;
+  font-weight: 400 900;
+  font-display: swap;
+  src: url("../../public/fonts/phrases-3.woff") format("woff");
+  unicode-range: U+61c2;
+}
+@font-face {
+  font-family: "LoopScript";
+  font-style: normal;
+  font-weight: 400 900;
+  font-display: swap;
+  src: url("../../public/fonts/phrases-4.woff") format("woff");
+  unicode-range: U+5f88;
+}
+@font-face {
+  font-family: "LoopScript";
+  font-style: normal;
+  font-weight: 400 900;
+  font-display: swap;
+  src: url("../../public/fonts/phrases-5.woff") format("woff");
+  unicode-range: U+542c;
+}
+@font-face {
+  font-family: "LoopScript";
+  font-style: normal;
+  font-weight: 400 900;
+  font-display: swap;
+  src: url("../../public/fonts/phrases-6.woff") format("woff");
+  unicode-range: U+5173;
+}
+@font-face {
+  font-family: "LoopScript";
+  font-style: normal;
+  font-weight: 400 900;
+  font-display: swap;
+  src: url("../../public/fonts/phrases-7.woff") format("woff");
+  unicode-range: U+4e48;
+}
+@font-face {
+  font-family: "LoopScript";
+  font-style: normal;
+  font-weight: 400 900;
+  font-display: swap;
+  src: url("../../public/fonts/phrases-8.woff") format("woff");
+  unicode-range: U+4ec0, U+4f60;
+}
+@font-face {
+  font-family: "LoopScript";
+  font-style: normal;
+  font-weight: 400 900;
+  font-display: swap;
+  src: url("../../public/fonts/phrases-9.woff") format("woff");
+  unicode-range: U+6ca1;
+}
+@font-face {
+  font-family: "LoopScript";
+  font-style: normal;
+  font-weight: 400 900;
+  font-display: swap;
+  src: url("../../public/fonts/phrases-10.woff") format("woff");
+  unicode-range: U+53eb;
+}
+@font-face {
+  font-family: "LoopScript";
+  font-style: normal;
+  font-weight: 400 900;
+  font-display: swap;
+  src: url("../../public/fonts/phrases-11.woff") format("woff");
+  unicode-range: U+6211;
+}
+@font-face {
+  font-family: "LoopScript";
+  font-style: normal;
+  font-weight: 400 900;
+  font-display: swap;
+  src: url("../../public/fonts/phrases-12.woff") format("woff");
+  unicode-range: U+8d77;
+}
+@font-face {
+  font-family: "LoopScript";
+  font-style: normal;
+  font-weight: 400 900;
+  font-display: swap;
+  src: url("../../public/fonts/phrases-13.woff") format("woff");
+  unicode-range: U+5b57, U+7cfb;
+}
+@font-face {
+  font-family: "LoopScript";
+  font-style: normal;
+  font-weight: 400 900;
+  font-display: swap;
+  src: url("../../public/fonts/phrases-14.woff") format("woff");
+  unicode-range: U+65e9;
+}
+@font-face {
+  font-family: "LoopScript";
+  font-style: normal;
+  font-weight: 400 900;
+  font-display: swap;
+  src: url("../../public/fonts/phrases-15.woff") format("woff");
+  unicode-range: U+518d, U+5ba2, U+9858;
+}
+@font-face {
+  font-family: "LoopScript";
+  font-style: normal;
+  font-weight: 400 900;
+  font-display: swap;
+  src: url("../../public/fonts/phrases-16.woff") format("woff");
+  unicode-range: U+597d;
+}
+@font-face {
+  font-family: "LoopScript";
+  font-style: normal;
+  font-weight: 400 900;
+  font-display: swap;
+  src: url("../../public/fonts/phrases-17.woff") format("woff");
+  unicode-range: U+4e0d;
+}
+@font-face {
+  font-family: "LoopScript";
+  font-style: normal;
+  font-weight: 400 900;
+  font-display: swap;
+  src: url("../../public/fonts/phrases-18.woff") format("woff");
+  unicode-range: U+540d;
+}
+@font-face {
+  font-family: "LoopScript";
+  font-style: normal;
+  font-weight: 400 900;
+  font-display: swap;
+  src: url("../../public/fonts/phrases-19.woff") format("woff");
+  unicode-range: U+4e0a;
+}
+@font-face {
+  font-family: "LoopScript";
+  font-style: normal;
+  font-weight: 400 900;
+  font-display: swap;
+  src: url("../../public/fonts/phrases-20.woff") format("woff");
+  unicode-range:
+    U+3042, U+3044, U+3046, U+3048, U+304a, U+304c, U+3053, U+3054, U+3055,
+    U+3056, U+3057, U+3058, U+3059, U+305b, U+3061, U+3066, U+3068, U+306a,
+    U+306b, U+306f, U+3070, U+307e, U+307f, U+3081, U+3088, U+3089, U+308a,
+    U+3093;
+}
+@font-face {
+  font-family: "LoopScript";
+  font-style: normal;
+  font-weight: 400 900;
+  font-display: swap;
+  src: url("../../public/fonts/phrases-sc-0.woff") format("woff");
+  unicode-range: U+8c22;
+}
+@font-face {
+  font-family: "LoopScript";
+  font-style: normal;
+  font-weight: 400 900;
+  font-display: swap;
+  src: url("../../public/fonts/phrases-sc-1.woff") format("woff");
+  unicode-range: U+5417;
+}
+@font-face {
+  font-family: "LoopScript";
+  font-style: normal;
+  font-weight: 400 900;
+  font-display: swap;
+  src: url("../../public/fonts/phrases-sc-2.woff") format("woff");
+  unicode-range: U+5bf9, U+8bf7, U+95ee;
+}

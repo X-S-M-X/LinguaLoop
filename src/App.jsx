@@ -1,19 +1,27 @@
-import { Suspense, lazy } from 'react';
-import { BrowserRouter, Link, Routes, Route } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext.jsx';
-import { ProfileProvider } from './context/ProfileContext.jsx';
-import { useAuth } from './context/AuthContext.jsx';
-import NavBar from './components/NavBar.jsx';
-import ProtectedRoute from './components/ProtectedRoute.jsx';
-import PublicOnlyRoute from './components/PublicOnlyRoute.jsx';
+import { Suspense, lazy } from "react";
+import {
+  BrowserRouter,
+  Link,
+  Routes,
+  Route,
+  useLocation,
+} from "react-router-dom";
+import { AuthProvider } from "./context/AuthContext.jsx";
+import { ProfileProvider } from "./context/ProfileContext.jsx";
+import { useAuth } from "./context/AuthContext.jsx";
+import NavBar from "./components/NavBar.jsx";
+import ProtectedRoute from "./components/ProtectedRoute.jsx";
+import PublicOnlyRoute from "./components/PublicOnlyRoute.jsx";
 
-const Home = lazy(() => import('./pages/Home.jsx'));
-const Login = lazy(() => import('./pages/Login.jsx'));
-const Signup = lazy(() => import('./pages/Signup.jsx'));
-const Dashboard = lazy(() => import('./pages/Dashboard.jsx'));
-const Settings = lazy(() => import('./pages/Settings.jsx'));
-const Lesson = lazy(() => import('./pages/Lesson.jsx'));
-const Progress = lazy(() => import('./pages/Progress.jsx'));
+const Home = lazy(() => import("./pages/Home.jsx"));
+const Login = lazy(() => import("./pages/Login.jsx"));
+const Signup = lazy(() => import("./pages/Signup.jsx"));
+const Dashboard = lazy(() => import("./pages/Dashboard.jsx"));
+const Settings = lazy(() => import("./pages/Settings.jsx"));
+const Lesson = lazy(() => import("./pages/Lesson.jsx"));
+const Courses = lazy(() => import("./pages/Courses.jsx"));
+const Practice = lazy(() => import("./pages/Practice.jsx"));
+const Progress = lazy(() => import("./pages/Progress.jsx"));
 
 function NotFound() {
   return (
@@ -30,12 +38,19 @@ function NotFound() {
 
 function AppFrame() {
   const { session } = useAuth();
+  const { pathname } = useLocation();
 
   return (
     <>
       <NavBar />
-      <main className={session ? 'page app-page' : 'page public-page'}>
-        <Suspense fallback={<p className="page-loading">Loading LinguaLoop…</p>}>
+      <main
+        className={
+          session && pathname !== "/home" ? "page app-page" : "page public-page"
+        }
+      >
+        <Suspense
+          fallback={<p className="page-loading">Loading LinguaLoop…</p>}
+        >
           <Routes>
             <Route
               path="/"
@@ -93,6 +108,23 @@ function AppFrame() {
                 </ProtectedRoute>
               }
             />
+            <Route path="/home" element={<Home />} />
+            <Route
+              path="/practice"
+              element={
+                <ProtectedRoute>
+                  <Practice />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/courses"
+              element={
+                <ProtectedRoute>
+                  <Courses />
+                </ProtectedRoute>
+              }
+            />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
@@ -102,7 +134,7 @@ function AppFrame() {
 }
 
 export default function App() {
-  const basename = import.meta.env.BASE_URL.replace(/\/$/, '') || '/';
+  const basename = import.meta.env.BASE_URL.replace(/\/$/, "") || "/";
 
   return (
     <AuthProvider>

@@ -94,7 +94,7 @@ const icons = {
   ),
 };
 
-export default function AppIcon({ name, size = 22, className = '' }) {
+export default function AppIcon({ name, size = 22, className = "" }) {
   return (
     <svg
       aria-hidden="true"

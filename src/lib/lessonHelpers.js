@@ -10,7 +10,7 @@ export function buildLessonCards({
     translations.map((translation) => [
       `${translation.concept_id}:${translation.language_id}`,
       translation,
-    ])
+    ]),
   );
 
   return concepts.flatMap((concept) => {
@@ -19,12 +19,14 @@ export function buildLessonCards({
 
     if (!source?.term || !target?.term) return [];
 
-    return [{
-      ...concept,
-      prompt: source.term,
-      answer: target.term,
-      romanization: target.romanization || null,
-    }];
+    return [
+      {
+        ...concept,
+        prompt: source.term,
+        answer: target.term,
+        romanization: target.romanization || null,
+      },
+    ];
   });
 }
 
@@ -34,7 +36,10 @@ export function shuffleItems(items = [], random = Math.random) {
   for (let index = shuffled.length - 1; index > 0; index -= 1) {
     const randomValue = Math.min(Math.max(random(), 0), 0.9999999999999999);
     const swapIndex = Math.floor(randomValue * (index + 1));
-    [shuffled[index], shuffled[swapIndex]] = [shuffled[swapIndex], shuffled[index]];
+    [shuffled[index], shuffled[swapIndex]] = [
+      shuffled[swapIndex],
+      shuffled[index],
+    ];
   }
 
   return shuffled;
@@ -42,7 +47,7 @@ export function shuffleItems(items = [], random = Math.random) {
 
 export function buildQuizQuestions(
   cards = [],
-  { choiceCount = 4, random = Math.random } = {}
+  { choiceCount = 4, random = Math.random } = {},
 ) {
   const safeChoiceCount = Math.max(2, choiceCount);
 
@@ -52,9 +57,9 @@ export function buildQuizQuestions(
 
     for (const candidate of shuffleItems(cards, random)) {
       if (
-        candidate.id === card.id
-        || !candidate.answer
-        || seenAnswers.has(candidate.answer)
+        candidate.id === card.id ||
+        !candidate.answer ||
+        seenAnswers.has(candidate.answer)
       ) {
         continue;
       }
@@ -69,7 +74,7 @@ export function buildQuizQuestions(
       ...card,
       choices: shuffleItems(
         [{ id: card.id, label: card.answer }, ...distractors],
-        random
+        random,
       ),
     };
   });
@@ -81,12 +86,16 @@ export function getSessionPercent(currentIndex, total, finished = false) {
   return Math.round((currentIndex / total) * 100);
 }
 
-export function getFlashcardPool(cards = [], completedIds = new Set(), filter = 'all') {
-  if (filter === 'unlearned') {
+export function getFlashcardPool(
+  cards = [],
+  completedIds = new Set(),
+  filter = "all",
+) {
+  if (filter === "unlearned") {
     return cards.filter((card) => !completedIds.has(card.id));
   }
 
-  if (filter === 'learned') {
+  if (filter === "learned") {
     return cards.filter((card) => completedIds.has(card.id));
   }
 
@@ -97,12 +106,15 @@ export function buildFlashcardSession(
   cards = [],
   {
     completedIds = new Set(),
-    filter = 'all',
-    size = 'all',
+    filter = "all",
+    size = "all",
     random = Math.random,
-  } = {}
+  } = {},
 ) {
-  const pool = shuffleItems(getFlashcardPool(cards, completedIds, filter), random);
+  const pool = shuffleItems(
+    getFlashcardPool(cards, completedIds, filter),
+    random,
+  );
   const requestedSize = Number(size);
 
   if (!Number.isFinite(requestedSize) || requestedSize <= 0) return pool;
@@ -113,7 +125,7 @@ export function buildSmartReviewSession(
   cards = [],
   attempts = [],
   completedIds = new Set(),
-  size = 5
+  size = 5,
 ) {
   const stats = new Map();
 
@@ -121,7 +133,7 @@ export function buildSmartReviewSession(
     const current = stats.get(attempt.concept_id) ?? {
       correct: 0,
       incorrect: 0,
-      lastAttemptAt: '',
+      lastAttemptAt: "",
     };
 
     if (attempt.was_correct) current.correct += 1;
@@ -135,19 +147,25 @@ export function buildSmartReviewSession(
 
   return [...cards]
     .map((card) => {
-      const cardStats = stats.get(card.id) ?? { correct: 0, incorrect: 0, lastAttemptAt: '' };
-      const priority = (cardStats.incorrect * 4)
-        - cardStats.correct
-        + (completedIds.has(card.id) ? 0 : 2)
-        + (Number(card.difficulty) || 1) / 10;
+      const cardStats = stats.get(card.id) ?? {
+        correct: 0,
+        incorrect: 0,
+        lastAttemptAt: "",
+      };
+      const priority =
+        cardStats.incorrect * 4 -
+        cardStats.correct +
+        (completedIds.has(card.id) ? 0 : 2) +
+        (Number(card.difficulty) || 1) / 10;
 
       return { card, priority, lastAttemptAt: cardStats.lastAttemptAt };
     })
-    .sort((left, right) => (
-      right.priority - left.priority
-      || left.lastAttemptAt.localeCompare(right.lastAttemptAt)
-      || left.card.sort_order - right.card.sort_order
-    ))
+    .sort(
+      (left, right) =>
+        right.priority - left.priority ||
+        left.lastAttemptAt.localeCompare(right.lastAttemptAt) ||
+        left.card.sort_order - right.card.sort_order,
+    )
     .slice(0, Math.min(Math.max(Number(size) || 5, 1), cards.length))
     .map(({ card }) => card);
 }

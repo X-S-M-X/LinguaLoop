@@ -1,11 +1,11 @@
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { supabase } from '../lib/supabaseClient.js';
+import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { supabase } from "../lib/supabaseClient.js";
 
 export default function Login() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -26,7 +26,7 @@ export default function Login() {
       return;
     }
 
-    navigate('/dashboard');
+    navigate("/dashboard");
   }
 
   return (
@@ -34,7 +34,9 @@ export default function Login() {
       <div className="card auth-card">
         <p className="eyebrow">Welcome back</p>
         <h1>Log in to LinguaLoop</h1>
-        <p className="auth-card__text">Pick up where you left off and continue your learning path.</p>
+        <p className="auth-card__text">
+          Pick up where you left off and continue your learning path.
+        </p>
 
         <form className="form auth-form" onSubmit={handleSubmit}>
           <label>
@@ -63,7 +65,7 @@ export default function Login() {
           {error && <p className="form__error">{error}</p>}
 
           <button type="submit" disabled={loading}>
-            {loading ? 'Logging in…' : 'Log in'}
+            {loading ? "Logging in…" : "Log in"}
           </button>
         </form>
 

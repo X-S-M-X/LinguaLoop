@@ -1,5 +1,9 @@
 # LinguaLoop
 
+The October update keeps the original green design and zigzag learning path,
+with compact mobile spacing, a profile menu, five courses and separate Practice
+and Progress screens. See `UPDATE_NOTES.md` for installation and verification.
+
 LinguaLoop is a React, Vite, and Supabase language-learning application built
 as a 15-week university project. This repository currently contains the
 foundation plus a Week 7 guided-path interface and several learning activities: authentication, protected routes,
