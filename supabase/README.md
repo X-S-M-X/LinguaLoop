@@ -1,104 +1,104 @@
-# Supabase migrations
+# Supabase setup
 
-`migrations/` is the source of truth for the LinguaLoop database. Apply each
-migration once and commit it with the application change that depends on it.
+`migrations/` records the database changes. Keep existing migration files intact
+after they have been applied. Add a new migration for a later schema change.
+The connected LinguaLoop project already contains the migrations and five
+introductory courses. The quiz layout fix does not require SQL or a database reset.
 
-## First-time setup
+## A separate development project
+
+Install the locked dependencies with `npm ci` before using `npx supabase`.
+The lockfile currently supplies CLI 2.110.0. Check `npx supabase --version` and the
+relevant command's `--help` before running hosted changes. CLI v3 changes remote
+targeting and confirmation rules, so these v2 instructions should not be copied
+to a v3 setup without checking them.
+
+For a new project, initialise the CLI configuration if it is absent, then sign in,
+link the intended project and review the pending migrations:
 
 ```bash
 npx supabase init
 npx supabase login
-npx supabase link --project-ref YOUR_PROJECT_REF
+npx supabase link
 npx supabase db push --dry-run
-npx supabase db push
 ```
 
-`supabase init` creates the local CLI configuration without replacing the
-tracked migration directory. The dry run shows which migrations are pending
-before anything is changed remotely.
+Check the linked project before running `npx supabase db push`. Do not use a
+production database for experiments. New schema work should be tested against
+a separate development project first.
 
-The project reference is the subdomain in
-`https://YOUR_PROJECT_REF.supabase.co`. Do not put a database password or
-service-role key in the React application.
+## Data and access rules
 
-## Existing project database
+The migrations create profiles when accounts are registered, including while
+confirmation is pending. This avoids asking an unsigned-in browser to insert a
+profile through an authenticated policy. Curriculum is read-only for browser
+clients. Profiles, progress and learning attempts use owner-based access rules.
+Avatar writes are restricted to the learner's folder, with type and size limits.
 
-The first migration upgrades the existing scaffold as well as creating a new
-database. It:
+Progress is upserted on `(user_id, concept_id)`. Repeating a card updates the
+learner's existing progress row. Learning attempts are separate, append-only
+records used for recent accuracy and Smart Review. Browser clients cannot edit
+or delete attempt history.
 
-- enables RLS on every table exposed through the public API;
-- makes curriculum tables read-only to browser clients;
-- creates profiles from an `auth.users` trigger, including while email
-  confirmation is pending;
-- adds database-level username, score, and uniqueness protection;
-- restricts avatar uploads by owner, MIME type, and size.
+The course expansion migration adds French, Mandarin Chinese and Arabic alongside
+Spanish and Japanese. All five currently have one unit and 15 concepts. Each
+concept needs both an English translation and a target-language translation.
+Use a language's speech locale and enable microphone practice only for suitable
+phrases. Japanese introductory characters are not a complete kana course.
 
-Run `npx supabase db push`, then use the Supabase Security Advisor to confirm
-that no exposed table is missing RLS.
+RLS was enabled on all eight public tables checked on 5 November 2026. This is
+configuration evidence. Test with two signed-in accounts to confirm that one
+learner cannot read or change another learner's private records.
 
-The Week 3 migration adds learning preferences and the first two flashcard
-units. It uses explicit browser-role grants as well as RLS, so the curriculum
-is readable while profiles and progress remain owner-only. Apply migrations
-before deploying React code that expects the new profile columns.
+## AI Quiz function
 
-The Week 5 flashcard and quiz update reuses the existing `progress` table and
-does not add a migration. Both activity types upsert on the existing unique
-`(user_id, concept_id)` index. A correct quiz answer or a "Got it" flashcard
-therefore completes a concept once, while repeated practice safely updates the
-same owner-protected row.
+The website invokes `ai-practice-session` with a unit ID and a level of `auto`,
+`easy`, `medium` or `hard`. The function validates the signed-in user and AI opt-in,
+loads course text and recent attempts, and reserves a session through
+`reserve_ai_session`. The database limits each learner to ten reservations per
+UTC day. Failed provider requests can still use a reserved session.
 
-The Week 6 migration expands both current courses from 10 to 15 cards, adds
-language speech locales, adds saved TTS preferences, and marks which concepts
-are suitable for microphone phrase matching. It keeps the existing Japanese
-`あ` concept ID, so already-saved progress remains attached to the same card.
-The migration does not create a new public table or weaken any RLS policy.
+Only course text, anonymous attempt counts and temporary card references are
+sent to the AI provider. Profile identity, database IDs, email, images, audio and
+transcripts are excluded. The provider request uses `store: false`. A strict
+schema and local validation check the returned references and question formats.
+Correct answers and completion scoring come from course data, not the model.
 
-The Week 8 migration adds append-only learning attempts. Signed-in users can
-read and insert only their own attempts. Browser clients cannot update or
-delete attempt history. Smart Review uses this evidence without an external
-service.
+`OPENAI_API_KEY` is an Edge Function secret. The optional `OPENAI_MODEL` secret
+overrides the default `gpt-5.6-luna`. Keep these values in Supabase's server-side
+secrets. The React application needs only its public Supabase configuration.
 
-The Week 9 migration adds the opt-in AI coaching preference and a small AI
-session audit table. Browser clients cannot insert session reservations
-directly. The authenticated `reserve_ai_session` database function atomically
-enforces a maximum of ten AI plans per user per UTC day.
-
-## AI practice Edge Function
-
-The React app never receives the OpenAI key. For the connected LinguaLoop
-project, the authenticated function was deployed with JWT verification on
-26 August 2026. Add the key only in Supabase Edge Function secrets. If this
-source is installed into a different Supabase project, deploy it there with:
+For a separate project, configure secrets in the Supabase dashboard, then deploy
+only this function using the installed CLI after checking the linked target:
 
 ```bash
-npx supabase secrets set OPENAI_API_KEY=YOUR_OPENAI_API_KEY
 npx supabase functions deploy ai-practice-session
 ```
 
-The default model is `gpt-5.6-luna`. To change it without editing source, add
-an optional `OPENAI_MODEL` Edge Function secret. ChatGPT subscriptions and API
-billing are separate, so the OpenAI API account must have billing enabled.
+Keep JWT verification enabled. The handler also validates the user token. A
+website publish does not perform this backend deployment.
 
-The function sends only reviewed card text, anonymous correct and incorrect
-counts, and a temporary request-only card number. It does not send database
-IDs, timestamps, unit metadata, profile names, usernames, email addresses,
-avatars, microphone audio, or transcripts. It uses strict structured output,
-maps every returned card number back to reviewed curriculum locally, and
-leaves completion scoring in the existing deterministic code. If the key or
-service is unavailable, the client offers the local Smart Review fallback
-instead of pretending AI was used.
+## Deployment record and verification
 
-For another learning language, add a `languages` row with a BCP 47
-`speech_locale`, then add its unit, concepts, English translations, and target
-translations in a new migration. Set `concepts.speech_practice_enabled` only
-for complete words or phrases that are suitable for browser recognition.
+On 5 November 2026, the connected function was replaced by version 5. Its entrypoint,
+handler and shared validator matched the prepared source on retrieval. JWT
+verification remained enabled. Live checks returned 200 for OPTIONS and 401 for
+a POST without authentication. No real learner data or paid AI call was used
+for those checks.
 
-## Adding another migration
+The updated response includes `contractVersion: 2`, the selected level and a
+`format` for each item. The earlier version 4 response lacked that quiz contract.
+The frontend now opens questions separately and shows generation failures
+without silently substituting another quiz.
 
-```bash
-npx supabase migration new describe_the_change
-```
+After publishing the frontend, sign in, enable AI Quiz in Settings and test each
+level. Check that results save and that errors, retries and the explicit standard
+quiz work. Provider key, model access and available credit are not proven by a
+successful deployment. A real generated round remains an acceptance check.
 
-Edit the generated SQL file, test it against a development project, and apply
-it with `npx supabase db push`. Avoid editing an already-applied migration;
-create a new one so the database history remains reproducible.
+## New migrations
+
+Use `npx supabase migration new describe_the_change` to create the next migration.
+Review and test the SQL before applying it. Keep server secrets out of migrations,
+source files and screenshots. Check the Security Advisor after schema changes,
+and verify both policy conditions and cross-account behaviour.

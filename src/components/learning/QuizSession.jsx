@@ -76,7 +76,7 @@ export default function QuizSession({
     setResult(nextResult);
     if (correct) setCorrectCount((count) => count + 1);
     if (autoplayTts)
-      synthesis.speak(question.answer, { locale, rate: speechRate, onNewQuiz });
+      synthesis.speak(question.answer, { locale, rate: speechRate });
     await saveAnswer(nextResult);
   }
 
@@ -249,7 +249,6 @@ export default function QuizSession({
                 synthesis.speak(question.answer, {
                   locale,
                   rate: speechRate,
-                  onNewQuiz,
                 })
               }
             >

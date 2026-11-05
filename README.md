@@ -1,168 +1,118 @@
 # LinguaLoop
 
-The October update keeps the original green design and zigzag learning path,
-with compact mobile spacing, a profile menu, five courses and separate Practice
-and Progress screens. See `UPDATE_NOTES.md` for installation and verification.
+LinguaLoop is my language learning application for COMP.6208 Project 1. It uses
+React and Vite for the website, with Supabase for accounts, course data and saved
+progress. The design keeps a green theme and a zigzag learning path.
 
-LinguaLoop is a React, Vite, and Supabase language-learning application built
-as a 15-week university project. This repository currently contains the
-foundation plus a Week 7 guided-path interface and several learning activities: authentication, protected routes,
-profiles, avatar storage, configurable flashcards, multiple-choice quizzes,
-speaking practice, saved progress, database migrations, and GitHub Pages deployment.
+- [Application](https://x-s-m-x.github.io/LinguaLoop/)
+- [Repository](https://github.com/X-S-M-X/LinguaLoop)
 
-## Local setup
+## Features
 
-Use Node.js 22 (the version in `.nvmrc` and the deployment workflow).
+- Accounts, email confirmation, login and logout.
+- Profile pictures, course selection, daily goals and audio preferences.
+- Spanish, Japanese, French, Mandarin Chinese and Arabic introductory courses.
+  Each currently has one unit with 15 concepts.
+- Flashcards with deck filters, missed-card review and browser text-to-speech.
+- Multiple-choice quizzes, written recall and saved learning attempts.
+- Smart Review, which selects cards using mistakes and unfinished concepts.
+- Optional AI Quiz with Easy, Medium, Hard and an adaptive setting. Questions
+  open separately from setup, and answers are checked against course content.
+- Speak and Repeat using browser speech recognition where supported.
+- Learn, Practice, Courses, Progress and Settings screens, with mobile navigation
+  and a profile menu.
 
-1. Install dependencies:
+## Run locally
 
-   ```bash
-   npm install
-   ```
+Use Node.js 22.12 or newer in the Node 22 line, as used by the deployment workflow.
 
-2. Create the local environment file:
+```bash
+npm ci
+```
 
-   ```bash
-   cp .env.example .env
-   ```
+Copy `.env.example` to `.env` and add the project URL and public browser key:
 
-3. Add the Supabase project URL and public publishable/anon key to `.env`.
-   Never put a service-role key in a Vite environment variable.
+```text
+VITE_SUPABASE_URL
+VITE_SUPABASE_ANON_KEY
+```
 
-4. Apply the database migrations by following
-   [`supabase/README.md`](supabase/README.md).
+The values belong in your local `.env`, not in source files. An OpenAI key or a
+Supabase service-role key must never be placed in a `VITE_` variable.
 
-5. Start the application:
+```bash
+npm run dev
+```
 
-   ```bash
-   npm run dev
-   ```
+Open `http://localhost:5173/LinguaLoop/`. A separate Supabase setup is described
+in [supabase/README.md](supabase/README.md). The connected project already has
+the course migrations, so do not rebuild or reset its database for a UI update.
 
-   Because the production project is hosted beneath `/LinguaLoop/`, Vite
-   serves the local app at `http://localhost:5173/LinguaLoop/`.
+## Project structure
 
-## Database and authentication
-
-The canonical database history is `supabase/migrations/`; do not maintain a
-second hand-pasted schema file.
-
-The migrations:
-
-- enables Row Level Security on every table in the exposed `public` schema;
-- gives browser clients read-only curriculum access;
-- restricts profiles and progress to the signed-in owner;
-- creates a profile from an `auth.users` trigger;
-- preserves username metadata even while email confirmation is pending;
-- limits avatar writes to each user's folder and restricts upload type/size.
-- add learning-language, daily-goal, pronunciation, and speech preferences;
-- seed 15-card Spanish greetings and Japanese foundations units;
-- store a BCP 47 speech locale for each language;
-- enforce stable unit/card ordering and safe progress upserts.
-
-The Auth trigger is important: with confirmation enabled, Supabase returns a
-new user without a session. The browser therefore cannot insert a profile
-through an authenticated RLS policy. The trigger creates it inside the same
-database transaction instead.
-
-## Supabase URL configuration
-
-In Supabase Dashboard → Authentication → URL Configuration, set:
-
-- Site URL: `https://k-sinclair.github.io/LinguaLoop/`
-- Additional redirect URL:
-  `https://k-sinclair.github.io/LinguaLoop/dashboard`
-- Local redirect URL:
-  `http://localhost:5173/LinguaLoop/dashboard`
-
-The confirmation email redirects to the dashboard. If the user has no valid
-session, the protected route sends them to Login.
-
-In Supabase Auth settings, keep **Confirm email** enabled and set the minimum
-password length to at least 8 so the server matches the Signup form. The app's
-client-side `minLength` improves feedback, but the hosted Auth rule is the real
-enforcement boundary.
-
-## GitHub Pages deployment
-
-The workflow at `.github/workflows/deploy.yml` tests, builds, and deploys every
-push to `main`.
-
-Create these GitHub repository secrets:
-
-- `SUPABASE_URL`
-- `SUPABASE_ANON_KEY`
-
-Then open repository Settings → Pages and select **GitHub Actions** as the
-publishing source.
-
-The production artifact includes `404.html`. GitHub Pages serves that file for
-direct SPA requests such as `/LinguaLoop/dashboard`; it returns the visitor to
-the app base and restores the original route before React starts. This fixes
-refreshes, copied protected-route links, and email-confirmation redirects.
+| Folder | Contents |
+| --- | --- |
+| `src/pages` | Main application screens |
+| `src/components/learning` | Flashcards, quizzes and speaking activities |
+| `src/hooks` | Lesson data, overview data and browser speech |
+| `src/context` | Account and profile state |
+| `src/lib` | Activity helpers and their tests |
+| `src/styles` | Shared layout and activity styles |
+| `supabase/migrations` | Database schema, access rules and course seeds |
+| `supabase/functions` | AI quiz handler and shared validation |
 
 ## Checks
 
 ```bash
-npm test
-npm run build
+npm run check
 ```
 
-`npm run check` runs both commands. The deployment workflow refuses to build
-when either Supabase repository secret is missing.
+This runs the Node test suite and a production build. The quiz fix was checked
+on 5 November 2026 with 44 passing tests. Browser checks at 320, 375, 768 and
+1440px used intercepted Supabase responses. They cover layout and request flow,
+but do not prove live AI generation, real-device speech or cross-account access.
 
-## Browser speech support
+## Deploy the website
 
-Flashcards use the browser Web Speech synthesis API and do not need an external
-API key. Speak and Repeat uses `SpeechRecognition` when the browser provides it,
-with a listen-only fallback everywhere else. Chrome and Edge are the recommended
-demonstration browsers for microphone matching.
+The workflow in `.github/workflows/deploy.yml` tests, builds and publishes pushes
+to `main`. Set Pages to use GitHub Actions and provide these repository secrets:
 
-Microphone access is requested only after the learner presses the button.
-LinguaLoop does not upload or store microphone audio or recognised transcripts.
-The browser or its speech provider may still process recognition.
+- `SUPABASE_URL`
+- `SUPABASE_ANON_KEY`
 
-### Dependency audit note
+Vite uses `/LinguaLoop/` as its base. `public/404.html` restores application
+routes when a learner opens or refreshes a direct lesson link.
 
-The project uses Vite 8 and React Router 7.18 to remove the older Vite
-development-server and React Router navigation advisories. `npm audit` still
-reports [GHSA-qwww-vcr4-c8h2](https://github.com/advisories/GHSA-qwww-vcr4-c8h2),
-which the advisory says applies only to React Router's unstable React Server
-Components APIs. LinguaLoop is a browser-only declarative app and does not use
-RSC or server actions. Recheck the audit when the patched router release is
-available in the project's dependency line.
+Website deployment does not deploy the Supabase Edge Function. The connected
+`ai-practice-session` function was updated to version 5 on 5 November 2026,
+with JWT verification enabled. Its deployed source was compared with this fix.
+An OPTIONS request returned 200 and an unauthenticated POST returned 401. A
+signed-in generated round still needs to be checked after publishing the frontend.
 
-## Current scope
+## Account confirmation and speech
 
-Built:
+The application keeps email-link confirmation. It does not add email-code
+verification or two-factor authentication. For the current deployment, Supabase
+Auth should use `https://x-s-m-x.github.io/LinguaLoop/` as the Site URL and allow
+`https://x-s-m-x.github.io/LinguaLoop/dashboard` as a redirect. Local development
+also needs `http://localhost:5173/LinguaLoop/dashboard` in the allowed redirects.
 
-- Week 9 opt-in Adaptive AI Coach through an authenticated Supabase Edge Function
-- Strict AI session schemas, validated curriculum IDs, a ten-session daily cap, and Smart Review fallback
-- Server-only OpenAI secrets, with no profile identity or microphone audio sent to the model
-- Week 8 append-only learning-attempt history protected by owner-only RLS
-- Deterministic Smart Review sessions prioritising mistakes and unlearned concepts
-- Recent practice accuracy on the dashboard and Progress page
-- Week 7 guided learning-path redesign with direct activity nodes
-- Correctly centred profile initials in desktop and mobile navigation
-- Signup, email confirmation, login, and logout
-- Authenticated users are redirected from public routes to their dashboard
-- Responsive learning dashboard and learning path
-- Profile, avatar, learning language, daily goal, pronunciation, and audio settings
-- Fifteen-card Spanish and Japanese foundations units
-- Japanese cards ordered as 10 useful phrases followed by 5 introductory hiragana
-- Flashcard deck filters, 5/10/15-card rounds, direction swapping, TTS, and missed-card review
-- Multiple-choice practice generated from each unit's existing translations
-- Speak and Repeat practice with browser microphone matching and listen-only fallback
-- Browser TTS shared by flashcards and speaking activities
-- Per-card completion saved through RLS-protected progress rows
-- Real card, unit, and course completion counts
-- Dedicated responsive Progress page and navigation item
-- Read-only curriculum data for browser clients
-- Language-neutral lesson helpers shared by every activity
+Browser text-to-speech uses the device's available voices. Speak and Repeat
+compares a recognised transcript with course text; it does not score pronunciation.
+The app requests microphone access after a button press and does not upload or
+store audio or transcripts itself. The browser's speech provider may process them.
 
-Planned:
+## Remaining work
 
-- A third language after its first 15-card curriculum is reviewed
-- Optional post-answer explanations after the AI session planner is evaluated
-- AI-assisted question variations only after verified curriculum safeguards are in place
-- Typed-answer and spaced-review practice
-- Streaks and points after their rules and data model are designed
+The original Spanish and Japanese targets require a second unit each. Real-account
+progress persistence, two-account access isolation, phone speech support and the
+planned voluntary user evaluation still need recorded acceptance results.
+AI questions can vary, but a new request is not a guarantee that every question
+will be unique. A generation error offers a standard quiz as an explicit choice.
+
+## AI assistance
+
+AI tools helped with interface ideas, including the zigzag path, parts of the
+implementation, debugging, tests and documentation. The AI Quiz also uses an AI
+service inside the application. These are separate uses of AI. I am responsible
+for reviewing the work, understanding the code and explaining its limitations.
