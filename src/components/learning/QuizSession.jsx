@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   DIFFICULTY_LABELS,
   isWrittenAnswerCorrect,
@@ -27,9 +27,15 @@ export default function QuizSession({
   const [error, setError] = useState(null);
   const busy = useRef(false);
   const saved = useRef({ attempt: false, progress: false });
+  const heading = useRef(null);
   const synthesis = useSpeechSynthesis();
   const question = questions[index];
   const locale = unit.language?.speech_locale || unit.language?.code || "en-US";
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    heading.current?.focus({ preventScroll: true });
+  }, [index]);
 
   async function saveAnswer(answer) {
     if (busy.current) return false;
@@ -40,7 +46,7 @@ export default function QuizSession({
       if (!saved.current.attempt) {
         await onRecordAttempt({
           conceptId: question.id,
-          activityType: plan.source === "openai" ? "ai_review" : "quiz",
+          activityType: "quiz",
           wasCorrect: answer.correct,
           score: answer.correct ? 100 : 0,
         });
@@ -93,9 +99,9 @@ export default function QuizSession({
 
   if (!question)
     return (
-      <section className="lesson-shell lesson-complete generated-quiz-session">
+      <section className="lesson-shell lesson-complete practice-quiz-session">
         <p className="eyebrow">Practice complete</p>
-        <h1>
+        <h1 ref={heading} tabIndex={-1}>
           {correctCount} of {questions.length} correct
         </h1>
         <p>
@@ -114,7 +120,7 @@ export default function QuizSession({
     );
 
   return (
-    <section className="lesson-shell adaptive-practice generated-quiz-session">
+    <section className="lesson-shell adaptive-practice practice-quiz-session">
       <div className="lesson-topbar">
         <button
           type="button"
@@ -135,13 +141,12 @@ export default function QuizSession({
       />
       <header className="lesson-heading">
         <p className="eyebrow">
-          {plan.source === "openai" ? "AI Quiz" : "Standard quiz"} ·{" "}
+          Practice Quiz ·{" "}
           {DIFFICULTY_LABELS[question.difficulty]}
         </p>
-        <h1>{plan.focusTitle}</h1>
+        <h1 ref={heading} tabIndex={-1}>{plan.focusTitle}</h1>
       </header>
       <article className="quiz-prompt" aria-live="polite">
-        <p>{question.question}</p>
         <span>
           {question.format === "meaning"
             ? `What does this ${unit.language?.name} phrase mean?`
@@ -277,7 +282,6 @@ export default function QuizSession({
         </p>
       )}
       <p className="lesson-help">
-        {plan.source === "openai" ? "AI wrote this situation and hint. " : ""}
         Correct answers use the phrases taught in your course.
       </p>
     </section>

@@ -1,6 +1,5 @@
 import { shuffleItems } from "./lessonHelpers.js";
-import { recentCounts } from "./adaptiveHelpers.js";
-import { difficultyFromCounts } from "../../supabase/functions/_shared/adaptive.js";
+import { difficultyFromCounts, recentCounts } from "./adaptiveHelpers.js";
 export const QUIZ_LEVELS = [
   { id: "auto", label: "Adapt to me", text: "Use my recent results" },
   { id: "easy", label: "Easy", text: "Recognise the phrase" },
@@ -78,9 +77,9 @@ export function randomQuizPlan(
 ) {
   return {
     source: "local-quiz",
-    focusTitle: "A fresh practice round",
+    focusTitle: "Your practice round",
     sessionReason:
-      "Five shuffled questions from your course. No AI call needed.",
+      "Shuffled questions from the phrases taught in this unit.",
     items: shuffleItems(cards, random)
       .slice(0, 5)
       .map((card, i) => {

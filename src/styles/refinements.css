@@ -344,7 +344,7 @@
 .practice-feature--review {
   border-color: #c8e7d8;
 }
-.practice-feature--ai {
+.practice-feature--quiz {
   border-color: #d7dcf5;
 }
 .practice-feature h2 {
@@ -433,43 +433,38 @@
   background: #fff0c2;
   color: #7c5800;
 }
-.ai-levels {
+.quiz-levels {
   margin: 24px 0;
 }
-.ai-levels > button {
+.quiz-levels > button {
   padding: 16px;
   border-width: 2px;
   border-color: var(--border);
   color: var(--muted);
 }
-.ai-levels button[aria-pressed="true"] {
+.quiz-levels button[aria-pressed="true"] {
   border-color: #96ccb5;
   background: var(--accent-soft);
   color: var(--accent-dark);
 }
-.ai-levels strong {
+.quiz-levels strong {
   font-size: 0.85rem;
 }
-.ai-levels span {
+.quiz-levels span {
   font-size: 0.73rem;
 }
-.ai-coach-intro {
+.quiz-intro {
   max-width: 650px;
 }
-.ai-coach-intro h1 {
+.quiz-intro h1 {
   font-size: clamp(1.75rem, 3vw, 2.2rem);
 }
-.ai-coach-intro p:not(.eyebrow) {
+.quiz-intro p:not(.eyebrow) {
   font-size: 0.92rem;
 }
-.ai-coach-orb {
+.quiz-icon {
   color: var(--purple);
   background: var(--purple-soft);
-}
-.ai-plan-card__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 13px;
 }
 .adaptive-practice > .progress-bar {
   margin-bottom: 24px;
@@ -713,14 +708,14 @@
   .practice-breakdown b {
     font-size: 0.74rem;
   }
-  .ai-levels {
+  .quiz-levels {
     grid-template-columns: 1fr 1fr;
     gap: 11px;
   }
-  .ai-levels > button {
+  .quiz-levels > button {
     padding: 15px 12px;
   }
-  .ai-levels span {
+  .quiz-levels span {
     font-size: 0.7rem;
   }
   .quiz-feedback {
@@ -729,16 +724,10 @@
   .adaptive-practice .quiz-feedback {
     flex-direction: column;
   }
-  .ai-plan-card__actions {
-    flex-direction: column;
-  }
-  .ai-plan-card__actions .button {
-    width: 100%;
-  }
-  .ai-coach-actions {
+  .quiz-actions {
     flex-wrap: wrap;
   }
-  .ai-coach-actions > .button {
+  .quiz-actions > .button {
     width: 100%;
   }
   .activity-row {
@@ -1100,110 +1089,126 @@
 }
 
 /* Quiz setup and questions use separate screens with comfortable text spacing. */
-.generated-quiz-page,
-.generated-quiz-session {
+.practice-quiz-page,
+.practice-quiz-session {
   width: min(100%, 820px);
   min-width: 0;
   margin-inline: auto;
 }
-.generated-quiz-page .lesson-topbar,
-.generated-quiz-session .lesson-topbar {
+.practice-quiz-page .lesson-topbar,
+.practice-quiz-session .lesson-topbar {
   gap: 16px;
   flex-wrap: wrap;
 }
-.generated-quiz-page .lesson-topbar > span {
+.practice-quiz-page .lesson-topbar > span {
   overflow-wrap: anywhere;
 }
-.generated-quiz-page .ai-coach-intro,
-.generated-quiz-status {
+.practice-quiz-page .quiz-intro,
+.practice-quiz-status {
   max-width: 650px;
   margin: 38px auto 26px;
   text-align: center;
   padding-inline: 12px;
 }
-.generated-quiz-status {
+.practice-quiz-status {
   padding: clamp(24px, 5vw, 44px);
   border: 2px solid var(--border);
   border-bottom-width: 5px;
   border-radius: var(--radius);
   background: var(--surface);
 }
-.generated-quiz-status h1 {
+.practice-quiz-status h1 {
   margin: 18px 0 14px;
   font-size: clamp(1.5rem, 4vw, 2rem);
 }
-.generated-quiz-status > p:not(.eyebrow) {
+.practice-quiz-status > p:not(.eyebrow) {
   color: var(--muted);
   line-height: 1.6;
   margin: 0 auto 24px;
 }
-.generated-quiz-page .ai-levels {
+.practice-quiz-page .quiz-levels {
   max-width: 760px;
   margin-inline: auto;
 }
-.generated-quiz-page .ai-coach-notice {
-  margin: 20px auto;
-  line-height: 1.6;
-}
-.generated-quiz-page .lesson-help,
-.generated-quiz-session .lesson-help {
+.practice-quiz-page .lesson-help,
+.practice-quiz-session .lesson-help {
   max-width: 650px;
   margin: 24px auto 0;
   padding-inline: 12px;
   text-align: center;
   line-height: 1.6;
 }
-.generated-quiz-session .quiz-prompt {
+.practice-quiz-session .quiz-prompt {
   padding: clamp(22px, 5vw, 40px);
 }
-.generated-quiz-session .quiz-prompt > *,
-.generated-quiz-session h1,
-.generated-quiz-status h1 {
+.practice-quiz-session .quiz-prompt > *,
+.practice-quiz-session h1,
+.practice-quiz-status h1 {
   min-width: 0;
   max-width: 100%;
   overflow-wrap: anywhere;
 }
-.generated-quiz-session .quiz-prompt > p {
+.practice-quiz-session .quiz-prompt > p {
   margin: 0 auto 12px;
 }
-.generated-quiz-session .quiz-prompt > strong {
+.practice-quiz-session .quiz-prompt > strong {
   line-height: 1.4;
 }
-.generated-quiz-session .quiz-option {
+.practice-quiz-session .quiz-option {
   justify-content: center;
   text-align: center;
   padding: 18px 20px;
 }
-.generated-quiz-session .adaptive-hint {
+.practice-quiz-session .adaptive-hint {
   text-align: center;
   padding-inline: 10px;
 }
-.generated-quiz-session .adaptive-answer-form {
+.practice-quiz-session .adaptive-answer-form {
   text-align: center;
 }
-.generated-quiz-session .adaptive-answer-form input {
+.practice-quiz-session .adaptive-answer-form input {
   text-align: center;
 }
-.generated-quiz-session .quiz-feedback {
+.practice-quiz-session .quiz-feedback {
   padding: 22px;
 }
-.generated-quiz-session .quiz-feedback > div {
+.practice-quiz-session .quiz-feedback > div {
   text-align: center;
 }
 @media (max-width: 650px) {
-  .generated-quiz-page .ai-coach-intro {
+  .practice-quiz-page .quiz-intro {
     margin-top: 26px;
   }
-  .generated-quiz-page .ai-levels {
+  .practice-quiz-page .quiz-levels {
     gap: 10px;
   }
-  .generated-quiz-page .lesson-topbar {
+  .practice-quiz-page .lesson-topbar {
     font-size: 0.75rem;
   }
-  .generated-quiz-page .ai-coach-actions {
+  .practice-quiz-page .quiz-actions {
     display: grid;
   }
-  .generated-quiz-status {
+  .practice-quiz-status {
     padding: 24px 18px;
+  }
+  .practice-quiz-session .lesson-heading {
+    margin: 20px 0 18px;
+  }
+  .practice-quiz-session .quiz-prompt {
+    padding: 20px 18px;
+  }
+  .practice-quiz-session .adaptive-hint {
+    margin: 10px 0;
+  }
+  .practice-quiz-session .quiz-options {
+    gap: 10px;
+    margin-top: 14px;
+  }
+  .practice-quiz-session .quiz-option {
+    padding: 14px 16px;
+    min-height: 52px;
+  }
+  .practice-quiz-session .lesson-help {
+    margin-top: 16px;
   }
 }

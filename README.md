@@ -16,8 +16,9 @@ progress. The design keeps a green theme and a zigzag learning path.
 - Flashcards with deck filters, missed-card review and browser text-to-speech.
 - Multiple-choice quizzes, written recall and saved learning attempts.
 - Smart Review, which selects cards using mistakes and unfinished concepts.
-- Optional AI Quiz with Easy, Medium, Hard and an adaptive setting. Questions
-  open separately from setup, and answers are checked against course content.
+- Practice Quiz with Easy, Medium, Hard and Adapt to me. Five course questions
+  are shuffled in the browser, with written recall for harder cards. Questions
+  open separately from setup and are checked against course answers.
 - Speak and Repeat using browser speech recognition where supported.
 - Learn, Practice, Courses, Progress and Settings screens, with mobile navigation
   and a profile menu.
@@ -37,8 +38,9 @@ VITE_SUPABASE_URL
 VITE_SUPABASE_ANON_KEY
 ```
 
-The values belong in your local `.env`, not in source files. An OpenAI key or a
-Supabase service-role key must never be placed in a `VITE_` variable.
+The values belong in your local `.env`, not in source files. A Supabase
+service-role key must never be placed in a `VITE_` variable. Practice Quiz does
+not need an external AI API or provider key.
 
 ```bash
 npm run dev
@@ -59,7 +61,7 @@ the course migrations, so do not rebuild or reset its database for a UI update.
 | `src/lib` | Activity helpers and their tests |
 | `src/styles` | Shared layout and activity styles |
 | `supabase/migrations` | Database schema, access rules and course seeds |
-| `supabase/functions` | AI quiz handler and shared validation |
+| `supabase/functions` | Retired AI endpoint for older clients |
 
 ## Checks
 
@@ -67,10 +69,16 @@ the course migrations, so do not rebuild or reset its database for a UI update.
 npm run check
 ```
 
-This runs the Node test suite and a production build. The quiz fix was checked
-on 5 November 2026 with 44 passing tests. Browser checks at 320, 375, 768 and
-1440px used intercepted Supabase responses. They cover layout and request flow,
-but do not prove live AI generation, real-device speech or cross-account access.
+This runs the Node test suite and a production build. The Practice Quiz update
+passed 39 tests on 5 November 2026. Tests for the removed AI generator were
+removed with that code; the retained suite checks course quizzes, answer marking,
+progress helpers and the retired endpoint.
+
+Production browser checks at 320, 375, 768 and 1440px used intercepted Supabase
+responses. All four difficulty modes completed with saved attempts in the test
+fixture. Checks also covered save retries, old links, refresh recovery and Arabic
+written input. No AI requests were made. These checks do not replace live account,
+real-device speech or cross-account access tests.
 
 ## Deploy the website
 
@@ -83,11 +91,16 @@ to `main`. Set Pages to use GitHub Actions and provide these repository secrets:
 Vite uses `/LinguaLoop/` as its base. `public/404.html` restores application
 routes when a learner opens or refreshes a direct lesson link.
 
-Website deployment does not deploy the Supabase Edge Function. The connected
-`ai-practice-session` function was updated to version 5 on 5 November 2026,
-with JWT verification enabled. Its deployed source was compared with this fix.
-An OPTIONS request returned 200 and an unauthenticated POST returned 401. A
-signed-in generated round still needs to be checked after publishing the frontend.
+The frontend replacement is prepared from main commit `c5ab8a8`; publishing it
+still requires the normal commit and push. The PowerShell updater synchronises
+main before applying these changes and checks file hashes before writing.
+
+On 5 November 2026, the old `ai-practice-session` function was replaced by a
+retired handler (version 7), with JWT verification enabled. It makes no database
+or provider requests and returns `410 AI_QUIZ_RETIRED` to old POST callers. It is
+kept only so older clients cannot continue generating provider requests. The new
+frontend does not invoke it. Old `activity=ai` lesson links redirect to Practice
+Quiz. Existing migrations and historical attempts are retained.
 
 ## Account confirmation and speech
 
@@ -107,12 +120,14 @@ store audio or transcripts itself. The browser's speech provider may process the
 The original Spanish and Japanese targets require a second unit each. Real-account
 progress persistence, two-account access isolation, phone speech support and the
 planned voluntary user evaluation still need recorded acceptance results.
-AI questions can vary, but a new request is not a guarantee that every question
-will be unique. A generation error offers a standard quiz as an explicit choice.
+Practice Quiz reuses the course bank. Question selection and choices are
+shuffled, so repeats are possible. It creates no new phrases or AI situations.
 
 ## AI assistance
 
 AI tools helped with interface ideas, including the zigzag path, parts of the
-implementation, debugging, tests and documentation. The AI Quiz also uses an AI
-service inside the application. These are separate uses of AI. I am responsible
-for reviewing the work, understanding the code and explaining its limitations.
+implementation, debugging, tests and documentation. Live AI quiz generation was
+removed after the provider rejected requests because its credit balance was
+exhausted. The final quiz direction avoids AI API costs and quotas. I remain
+responsible for reviewing the work, understanding the code and explaining its
+limitations.

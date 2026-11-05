@@ -1,8 +1,9 @@
-import { difficultyFromCounts } from "../../supabase/functions/_shared/adaptive.js";
-import {
-  buildQuizQuestions,
-  buildSmartReviewSession,
-} from "./lessonHelpers.js";
+export function difficultyFromCounts(correct = 0, incorrect = 0) {
+  const total = correct + incorrect;
+  if (total < 3 || correct / total < 0.6) return "supported";
+  if (total >= 5 && correct / total >= 0.8) return "challenge";
+  return "standard";
+}
 
 export const DIFFICULTY_LABELS = {
   supported: "Two choices",
@@ -19,66 +20,6 @@ export function recentCounts(id, attempts) {
     correct: recent.filter((a) => a.was_correct).length,
     incorrect: recent.filter((a) => !a.was_correct).length,
   };
-}
-
-export function localPracticePlan(cards, attempts, completedIds) {
-  const selected = buildSmartReviewSession(cards, attempts, completedIds, 5);
-  return {
-    source: "smart-review",
-    focusTitle: "Your adaptive practice",
-    sessionReason:
-      "Two choices to start, four as you improve, then written recall. Difficulty uses your recent attempts on each card.",
-    items: selected.map((card) => {
-      const { correct, incorrect } = recentCounts(card.id, attempts);
-      return {
-        conceptId: card.id,
-        question: `How would you express “${card.prompt}”?`,
-        reason: "Selected using your mistakes and unlearned cards.",
-        hint: "Think back to this phrase in your flashcards.",
-        difficulty: difficultyFromCounts(correct, incorrect),
-      };
-    }),
-  };
-}
-
-export function buildAdaptiveQuestions(plan, cards, random = Math.random) {
-  if (
-    !plan ||
-    !Array.isArray(plan.items) ||
-    plan.items.length !== Math.min(5, cards.length)
-  )
-    return null;
-  const seen = new Set();
-  const questions = [];
-  for (const item of plan.items) {
-    if (
-      !item ||
-      seen.has(item.conceptId) ||
-      !Object.hasOwn(DIFFICULTY_LABELS, item.difficulty)
-    )
-      return null;
-    const card = cards.find((c) => c.id === item.conceptId);
-    if (
-      !card ||
-      ["question", "hint", "reason"].some(
-        (key) =>
-          typeof item[key] !== "string" ||
-          !item[key].trim() ||
-          item[key].length > 240,
-      )
-    )
-      return null;
-    seen.add(item.conceptId);
-    const choices =
-      item.difficulty === "challenge"
-        ? []
-        : buildQuizQuestions(cards, {
-            choiceCount: item.difficulty === "supported" ? 2 : 4,
-            random,
-          }).find((q) => q.id === card.id).choices;
-    questions.push({ ...card, ...item, choices });
-  }
-  return questions;
 }
 
 export function normalizeWrittenAnswer(value, locale = "en") {

@@ -83,24 +83,24 @@ export default function Practice() {
                 <AppIcon name="arrow" size={18} />
               </Link>
             </article>
-            <article className="practice-feature practice-feature--ai">
+            <article className="practice-feature practice-feature--quiz">
               <span className="icon-bubble tone-blue">
-                <AppIcon name="spark" size={28} />
+                <AppIcon name="quiz" size={28} />
               </span>
-              <span className="tag">Generate a quiz</span>
-              <h2>AI Quiz</h2>
+              <span className="tag">Five questions</span>
+              <h2>Practice Quiz</h2>
               <p>
-                Generate a short quiz around your course. Choose your level,
-                then tackle fresh situations.
+                Choose a difficulty and practise five shuffled questions from
+                your course. Try written answers when you want a challenge.
               </p>
               <div className="feature-footnote">
                 Easy · Medium · Hard · Adapt to me
               </div>
               <Link
-                to={`/lessons/${unit.id}?activity=ai`}
+                to={`/lessons/${unit.id}?activity=practice`}
                 className="button button--primary"
               >
-                Build a new quiz
+                Start a practice quiz
                 <AppIcon name="arrow" size={18} />
               </Link>
             </article>

@@ -5,7 +5,6 @@ import {
   buildQuizSession,
   quizDifficulty,
 } from "./quizHelpers.js";
-import { validateGeneratedPlan } from "../../supabase/functions/_shared/adaptive.js";
 import { weeklyPractice } from "./practiceHelpers.js";
 const cards = Array.from({ length: 8 }, (_, i) => ({
   id: `c${i}`,
@@ -45,7 +44,7 @@ test("easy quiz builds two target-language options; medium can reverse to Englis
     b[0].choices.some((c) => c.id === b[0].id && c.label === b[0].prompt),
   );
 });
-test("hard quiz uses written answers and rejects invalid or duplicate AI items", () => {
+test("hard quiz uses written answers and rejects invalid or duplicate questions", () => {
   const p = randomQuizPlan(cards, [], "hard");
   const q = buildQuizSession(p, cards);
   assert.equal(q[0].format, "write");
@@ -55,25 +54,29 @@ test("hard quiz uses written answers and rejects invalid or duplicate AI items",
   p.items[0].format = "hallucinated";
   assert.equal(buildQuizSession(p, cards), null);
 });
-test("backend rejects a generated format that does not match the requested level", () => {
-  const plan = {
-    focus_title: "Practice",
-    session_reason: "Try these.",
-    items: cards
-      .slice(0, 5)
-      .map((_, i) => ({
-        card_ref: i + 1,
-        format: "write",
-        question: "Produce the phrase.",
-        reason: "Recall.",
-        hint: "Think of the course.",
-      })),
-  };
-  assert.equal(validateGeneratedPlan(plan, cards, 5, "easy"), null);
-  assert.equal(
-    validateGeneratedPlan(plan, cards, 5, "hard").items[0].difficulty,
-    "challenge",
+test("adaptive quiz uses each card's recent results to set its answer format", () => {
+  const attempts = cards.flatMap((card, index) =>
+    Array.from({ length: index === 0 ? 5 : index === 1 ? 3 : 0 }, (_, day) => ({
+      concept_id: card.id,
+      was_correct: true,
+      created_at: `2026-11-0${day + 1}`,
+    })),
   );
+  const pool = cards.slice(0, 3);
+  const questions = buildQuizSession(randomQuizPlan(pool, attempts), pool);
+  assert.equal(questions.find((q) => q.id === "c0").format, "write");
+  assert.equal(questions.find((q) => q.id === "c1").difficulty, "standard");
+  assert.equal(questions.find((q) => q.id === "c2").difficulty, "supported");
+  assert.equal(questions.length, 3);
+});
+test("small courses and duplicate translations cannot create duplicate answer choices", () => {
+  const pool = cards.slice(0, 3).map((card) => ({ ...card, answer: "Same phrase" }));
+  const questions = buildQuizSession(randomQuizPlan(pool, [], "easy"), pool);
+  assert.equal(questions.length, 3);
+  for (const question of questions) {
+    assert.equal(question.choices.length, 1);
+    assert.equal(question.choices[0].id, question.id);
+  }
 });
 test("weekly activity excludes future and older attempts and includes the current day", () => {
   const now = new Date(2026, 9, 23, 12);

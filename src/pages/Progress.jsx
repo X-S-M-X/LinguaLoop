@@ -25,10 +25,10 @@ export default function Progress() {
   const largest = Math.max(...week.map((d) => d.total), 1);
   const groups = [
     ["flashcard", "Flashcards", "cards"],
-    ["quiz", "Quick Quiz", "quiz"],
+    ["quiz", "Quizzes", "quiz"],
     ["speech", "Speak & Repeat", "mic"],
     ["smart_review", "Smart Review", "target"],
-    ["ai_review", "AI Quiz", "spark"],
+    ["ai_review", "Earlier practice", "quiz"],
   ];
   return (
     <section className="results-page">
@@ -148,6 +148,7 @@ export default function Progress() {
               <div className="practice-breakdown">
                 {groups.map(([id, name, icon]) => {
                   const stats = activityStats(attemptRows, id);
+                  if (id === "ai_review" && stats.total === 0) return null;
                   return (
                     <div key={id}>
                       <AppIcon name={icon} size={20} />

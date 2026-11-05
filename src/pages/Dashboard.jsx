@@ -194,8 +194,8 @@ export default function Dashboard() {
               <p className="eyebrow">Extra practice</p>
               <h3>Review or try a new quiz</h3>
               <p>
-                Smart Review revisits tricky cards. AI Quiz creates questions
-                around your course.
+                Smart Review revisits tricky cards. Practice Quiz lets you
+                choose a difficulty and test your course phrases.
               </p>
               <Link
                 to="/practice"

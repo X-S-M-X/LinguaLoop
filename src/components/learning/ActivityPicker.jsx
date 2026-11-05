@@ -56,7 +56,7 @@ export default function ActivityPicker({
       </div>
       <div className="activity-practice-link">
         <AppIcon name="target" />
-        <p>Want to revisit mistakes or try an AI Quiz?</p>
+        <p>Want to revisit mistakes or try a Practice Quiz?</p>
         <Link to="/practice" className="text-link">
           Open Practice
           <AppIcon name="arrow" size={16} />

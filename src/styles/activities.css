@@ -1,10 +1,10 @@
-.ai-levels {
+.quiz-levels {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 10px;
   margin: 25px 0;
 }
-.ai-levels > button {
+.quiz-levels > button {
   border: 1px solid var(--border);
   border-radius: 13px;
   background: white;
@@ -15,15 +15,22 @@
   text-align: left;
   min-width: 0;
 }
-.ai-levels strong {
+.quiz-levels strong {
   font-size: 12px;
 }
-.ai-levels span {
+.quiz-levels span {
   font-size: 9px;
   line-height: 1.5;
 }
-.ai-levels button[aria-pressed="true"] {
+.quiz-levels button[aria-pressed="true"] {
   border-color: #b9c4f9;
   background: #f0f3fe;
   color: #6272cf;
+}
+.quiz-actions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
 }

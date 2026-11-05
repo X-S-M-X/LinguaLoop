@@ -50,51 +50,37 @@ RLS was enabled on all eight public tables checked on 5 November 2026. This is
 configuration evidence. Test with two signed-in accounts to confirm that one
 learner cannot read or change another learner's private records.
 
-## AI Quiz function
+## Practice Quiz and retired AI endpoint
 
-The website invokes `ai-practice-session` with a unit ID and a level of `auto`,
-`easy`, `medium` or `hard`. The function validates the signed-in user and AI opt-in,
-loads course text and recent attempts, and reserves a session through
-`reserve_ai_session`. The database limits each learner to ten reservations per
-UTC day. Failed provider requests can still use a reserved session.
+Practice Quiz selects and shuffles course questions in the browser. Easy uses
+up to two distinct answer choices, Medium uses up to four and can reverse the
+translation direction, and Hard uses written answers. Adapt to me uses recent
+correct and incorrect attempts per card. Results still save to Supabase as
+`quiz` attempts. This activity does not call an AI provider and has no AI API
+request quota or generation fee. Normal Supabase service limits still apply.
 
-Only course text, anonymous attempt counts and temporary card references are
-sent to the AI provider. Profile identity, database IDs, email, images, audio and
-transcripts are excluded. The provider request uses `store: false`. A strict
-schema and local validation check the returned references and question formats.
-Correct answers and completion scoring come from course data, not the model.
+AI Quiz was removed on 5 November 2026. A real request to the former provider
+returned `429 credit_balance_exhausted`, which the function translated to 502.
+Adding paid credits did not meet the project's zero-cost requirement, so the
+replacement uses the existing course bank. Question content can repeat.
 
-`OPENAI_API_KEY` is an Edge Function secret. The optional `OPENAI_MODEL` secret
-overrides the default `gpt-5.6-luna`. Keep these values in Supabase's server-side
-secrets. The React application needs only its public Supabase configuration.
+The deployed `ai-practice-session` function is now a small retirement handler,
+version 7. Its entrypoint and handler were compared with the prepared source;
+JWT verification remains enabled. The handler returns `410 AI_QUIZ_RETIRED` for
+POST, 204 for OPTIONS and 405 for other methods. It reads no server secrets,
+reserves no sessions and makes no database or provider requests. The frontend
+no longer invokes it, including when an old `activity=ai` lesson URL is opened.
 
-For a separate project, configure secrets in the Supabase dashboard, then deploy
-only this function using the installed CLI after checking the linked target:
+Keep the earlier AI migrations intact as deployment history. The old profile
+flag, session reservation function and any historical `ai_review` attempts are
+not used for new quizzes. Historical attempts remain available in Progress as
+Earlier practice. No account data or course progress needs to be deleted for
+this update. The old OpenAI secrets are no longer used by the retired handler.
 
-```bash
-npx supabase functions deploy ai-practice-session
-```
-
-Keep JWT verification enabled. The handler also validates the user token. A
-website publish does not perform this backend deployment.
-
-## Deployment record and verification
-
-On 5 November 2026, the connected function was replaced by version 5. Its entrypoint,
-handler and shared validator matched the prepared source on retrieval. JWT
-verification remained enabled. Live checks returned 200 for OPTIONS and 401 for
-a POST without authentication. No real learner data or paid AI call was used
-for those checks.
-
-The updated response includes `contractVersion: 2`, the selected level and a
-`format` for each item. The earlier version 4 response lacked that quiz contract.
-The frontend now opens questions separately and shows generation failures
-without silently substituting another quiz.
-
-After publishing the frontend, sign in, enable AI Quiz in Settings and test each
-level. Check that results save and that errors, retries and the explicit standard
-quiz work. Provider key, model access and available credit are not proven by a
-successful deployment. A real generated round remains an acceptance check.
+The replacement passed 39 automated tests and production browser checks with
+intercepted Supabase responses. Real-account persistence and two-account access
+checks still need recorded acceptance results. The frontend is prepared for
+publication through the normal GitHub Pages workflow.
 
 ## New migrations
 

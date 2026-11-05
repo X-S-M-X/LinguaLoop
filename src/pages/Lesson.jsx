@@ -1,9 +1,10 @@
+import { useEffect } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import ActivityPicker from "../components/learning/ActivityPicker.jsx";
 import FlashcardActivity from "../components/learning/FlashcardActivity.jsx";
 import QuizActivity from "../components/learning/QuizActivity.jsx";
 import SpeakAndRepeatActivity from "../components/learning/SpeakAndRepeatActivity.jsx";
-import GeneratedQuiz from "../components/learning/GeneratedQuiz.jsx";
+import PracticeQuiz from "../components/learning/PracticeQuiz.jsx";
 import AppIcon from "../components/AppIcon.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 import { useProfile } from "../context/ProfileContext.jsx";
@@ -15,7 +16,15 @@ function LessonUnit() {
   const { user } = useAuth();
   const { profile } = useProfile();
   const requestedActivity = searchParams.get("activity");
-  const activity = ["flashcards", "quiz", "speak", "review", "ai"].includes(
+  useEffect(() => {
+    if (requestedActivity === "ai") {
+      const next = new URLSearchParams(searchParams);
+      next.set("activity", "practice");
+      next.delete("round");
+      setSearchParams(next, { replace: true });
+    }
+  }, [requestedActivity, searchParams, setSearchParams]);
+  const activity = ["flashcards", "quiz", "speak", "review", "practice"].includes(
     requestedActivity,
   )
     ? requestedActivity
@@ -110,15 +119,14 @@ function LessonUnit() {
     );
   }
 
-  if (activity === "ai") {
+  if (activity === "practice") {
     return (
-      <GeneratedQuiz
+      <PracticeQuiz
         key={`${unitId}:${activity}`}
         unit={unit}
         cards={cards}
         completedIds={completedIds}
         attempts={attempts}
-        aiEnabled={profile?.ai_coaching_enabled ?? false}
         onCompleteConcept={completeConcept}
         onRecordAttempt={recordAttempt}
         onChangeActivity={returnToActivities}
@@ -166,7 +174,6 @@ function LessonUnit() {
       cards={cards}
       completedCount={completedIds.size}
       attemptCount={attempts.length}
-      aiEnabled={profile?.ai_coaching_enabled ?? false}
       onSelect={selectActivity}
     />
   );

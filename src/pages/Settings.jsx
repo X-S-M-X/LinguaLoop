@@ -30,7 +30,6 @@ export default function Settings() {
   const [showRomanization, setShowRomanization] = useState(true);
   const [autoplayTts, setAutoplayTts] = useState(false);
   const [speechRate, setSpeechRate] = useState(1);
-  const [aiCoachingEnabled, setAiCoachingEnabled] = useState(false);
   const [languages, setLanguages] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -48,7 +47,6 @@ export default function Settings() {
       setShowRomanization(profile.show_romanization ?? true);
       setAutoplayTts(profile.autoplay_tts ?? false);
       setSpeechRate(Number(profile.speech_rate ?? 1));
-      setAiCoachingEnabled(profile.ai_coaching_enabled ?? false);
     }
 
     if (user?.email) setEmail(user.email);
@@ -160,7 +158,6 @@ export default function Settings() {
       show_romanization: showRomanization,
       autoplay_tts: autoplayTts,
       speech_rate: Number(speechRate),
-      ai_coaching_enabled: aiCoachingEnabled,
       username: normalizedUsername,
     };
 
@@ -439,44 +436,6 @@ export default function Settings() {
           </p>
         </section>
 
-        <section
-          className="settings-panel settings-panel--ai"
-          aria-labelledby="ai-settings-title"
-        >
-          <div className="settings-panel__heading">
-            <span className="settings-panel__icon settings-panel__icon--ai">
-              <AppIcon name="spark" />
-            </span>
-            <div>
-              <h2 id="ai-settings-title">AI Quiz</h2>
-              <p>
-                Try fresh situational questions with a difficulty level you
-                choose.
-              </p>
-            </div>
-          </div>
-
-          <label className="toggle-row">
-            <span>
-              <strong>Enable AI-generated quizzes</strong>
-              <small>
-                This is off by default. You can turn it off again at any time.
-              </small>
-            </span>
-            <input
-              type="checkbox"
-              checked={aiCoachingEnabled}
-              onChange={(event) => setAiCoachingEnabled(event.target.checked)}
-            />
-          </label>
-
-          <p className="settings-privacy-note settings-privacy-note--ai">
-            When enabled, LinguaLoop sends card text plus anonymous correct and
-            incorrect counts to the configured AI service. Your name, username,
-            email, avatar, and microphone audio are not included. Course answers
-            and completion rules remain controlled by LinguaLoop.
-          </p>
-        </section>
 
         <div className="settings-savebar">
           <div aria-live="polite">
