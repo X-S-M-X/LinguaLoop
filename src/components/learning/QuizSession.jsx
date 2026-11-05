@@ -93,7 +93,7 @@ export default function QuizSession({
 
   if (!question)
     return (
-      <section className="lesson-shell lesson-complete">
+      <section className="lesson-shell lesson-complete generated-quiz-session">
         <p className="eyebrow">Practice complete</p>
         <h1>
           {correctCount} of {questions.length} correct
@@ -114,7 +114,7 @@ export default function QuizSession({
     );
 
   return (
-    <section className="lesson-shell adaptive-practice">
+    <section className="lesson-shell adaptive-practice generated-quiz-session">
       <div className="lesson-topbar">
         <button
           type="button"

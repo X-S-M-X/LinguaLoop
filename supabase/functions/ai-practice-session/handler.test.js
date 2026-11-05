@@ -89,7 +89,16 @@ function fixture(options = {}) {
       calls++;
       requestBody = JSON.parse(init.body);
       if (options.timeout) throw new DOMException("Timed out", "TimeoutError");
-      if (options.providerError) return new Response("{}", { status: 503 });
+      if (options.providerError)
+        return Response.json(
+          {
+            error: {
+              code: options.providerCode,
+              message: "private provider detail",
+            },
+          },
+          { status: options.providerStatus || 503 },
+        );
       if (options.nullItem) generated.items[0] = null;
       return Response.json({
         output: [
@@ -223,4 +232,19 @@ test("explicit hard level permits written questions and unknown levels never inv
     400,
   );
   assert.equal(invalid.inspect().calls, 0);
+});
+
+test("provider configuration failures have useful codes without leaking provider details", async () => {
+  for (const [providerStatus, providerCode, expected] of [
+    [401, "invalid_api_key", "AI_PROVIDER_AUTH"],
+    [429, "insufficient_quota", "AI_CREDIT_UNAVAILABLE"],
+    [404, "model_not_found", "AI_MODEL_UNAVAILABLE"],
+  ]) {
+    const f = fixture({ providerError: true, providerStatus, providerCode });
+    const response = await f.handler(request({ unitId, level: "easy" }));
+    assert.equal(response.status, 502);
+    const text = await response.text();
+    assert.equal(JSON.parse(text).code, expected);
+    assert.equal(text.includes("private provider detail"), false);
+  }
 });

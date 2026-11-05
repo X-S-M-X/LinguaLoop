@@ -420,12 +420,33 @@ export function createHandler({
       });
 
       if (!aiResponse.ok) {
-        console.error("OpenAI request failed", aiResponse.status);
+        let providerCode;
+        try {
+          providerCode = (await aiResponse.json())?.error?.code;
+        } catch {
+          /* Providers may return an empty error response. */
+        }
+        const known = [
+          "invalid_api_key",
+          "insufficient_quota",
+          "model_not_found",
+          "rate_limit_exceeded",
+        ];
+        console.error(
+          "AI provider request failed",
+          aiResponse.status,
+          known.includes(providerCode) ? providerCode : "unclassified",
+        );
+        const code =
+          providerCode === "insufficient_quota"
+            ? "AI_CREDIT_UNAVAILABLE"
+            : aiResponse.status === 401 || aiResponse.status === 403
+              ? "AI_PROVIDER_AUTH"
+              : aiResponse.status === 404
+                ? "AI_MODEL_UNAVAILABLE"
+                : "AI_UNAVAILABLE";
         return jsonResponse(
-          {
-            code: "AI_UNAVAILABLE",
-            message: "The AI coach is temporarily unavailable.",
-          },
+          { code, message: "AI Quiz is temporarily unavailable." },
           502,
         );
       }
@@ -472,7 +493,12 @@ export function createHandler({
           502,
         );
       }
-      return jsonResponse({ source: "openai", model, ...plan });
+      return jsonResponse({
+        source: "openai",
+        contractVersion: 2,
+        model,
+        ...plan,
+      });
     } catch (error) {
       // Never log request bodies, tokens, or provider error bodies.
       const timedOut =

@@ -1,5 +1,5 @@
-import { Link } from "react-router-dom";
-import { useRef, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
 import AppIcon from "../AppIcon.jsx";
 import { supabase } from "../../lib/supabaseClient.js";
 import {
@@ -9,92 +9,220 @@ import {
 } from "../../lib/quizHelpers.js";
 import QuizSession from "./QuizSession.jsx";
 
+const failureMessages = {
+  DAILY_LIMIT:
+    "You have used today’s ten AI requests. Try again tomorrow or choose a standard quiz.",
+  AI_NOT_CONFIGURED: "The AI service has not been configured yet.",
+  AI_PROVIDER_AUTH: "The AI service’s API configuration needs checking.",
+  AI_CREDIT_UNAVAILABLE:
+    "The AI service has no available credit at the moment.",
+  AI_MODEL_UNAVAILABLE: "The configured AI model is unavailable.",
+  AI_TIMEOUT: "The AI request took too long. You can try again.",
+  AI_DISABLED:
+    "AI Quiz is switched off. Enable it in Settings before generating a quiz.",
+  UNAUTHENTICATED:
+    "Your sign-in has expired. Log in again before generating a quiz.",
+  INVALID_AI_OUTPUT:
+    "The AI response did not pass the quiz checks. Please try again.",
+};
+
 export default function GeneratedQuiz(props) {
   const { unit, cards, attempts, aiEnabled, onChangeActivity } = props;
-  const [level, setLevel] = useState("auto");
-  const [plan, setPlan] = useState(null);
-  const [questions, setQuestions] = useState(null);
+  const [params, setParams] = useSearchParams();
+  const selected = params.get("level") || "auto";
+  const level = QUIZ_LEVELS.some((option) => option.id === selected)
+    ? selected
+    : "auto";
+  const roundId = params.get("round");
+  const [round, setRound] = useState(null);
+  const [failure, setFailure] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState(null);
-  const [started, setStarted] = useState(false);
-  const busy = useRef(false);
-  function localQuiz(reason) {
-    const next = randomQuizPlan(cards, attempts, level);
-    setPlan(next);
-    setQuestions(buildQuizSession(next, cards));
-    setMessage(reason);
+  const activeRequest = useRef(null);
+  const heading = useRef(null);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    heading.current?.focus({ preventScroll: true });
+    if (activeRequest.current && activeRequest.current.id !== roundId) {
+      activeRequest.current.controller.abort();
+      activeRequest.current = null;
+      setLoading(false);
+    }
+  }, [roundId]);
+  useEffect(() => () => activeRequest.current?.controller.abort(), []);
+
+  function chooseLevel() {
+    activeRequest.current?.controller.abort();
+    activeRequest.current = null;
+    setLoading(false);
+    setFailure(null);
+    setParams({ activity: "ai", level });
   }
-  async function generate() {
-    if (busy.current || !aiEnabled) return;
-    busy.current = true;
-    setLoading(true);
-    setMessage(null);
-    setPlan(null);
+
+  async function openQuiz(useAi) {
+    if (activeRequest.current || (useAi && !aiEnabled)) return;
+    const id = crypto.randomUUID();
+    const controller = new AbortController();
+    setRound(null);
+    setFailure(null);
+    setLoading(useAi);
+    activeRequest.current = useAi ? { id, controller } : null;
+    setParams({ activity: "ai", level, round: id });
+    if (!useAi) {
+      const plan = randomQuizPlan(cards, attempts, level);
+      setRound({ id, plan, questions: buildQuizSession(plan, cards) });
+      return;
+    }
     try {
-      const { data, error } = await supabase.functions.invoke(
-        "ai-practice-session",
-        {
+      const timeout = setTimeout(() => controller.abort(), 35000);
+      let response;
+      try {
+        response = await supabase.functions.invoke("ai-practice-session", {
           body: { unitId: unit.id, level },
-          signal: AbortSignal.timeout(35000),
-        },
-      );
+          signal: controller.signal,
+        });
+      } finally {
+        clearTimeout(timeout);
+      }
+      if (activeRequest.current?.id !== id) return;
+      const { data, error } = response;
       if (error) {
         let code;
         try {
           code = (await error.context?.json())?.code;
         } catch {
-          /* Gateway errors may not be JSON. */
+          /* Gateway errors may not include JSON. */
         }
-        const reason =
-          {
-            DAILY_LIMIT: "You have used today’s ten AI requests.",
-            AI_NOT_CONFIGURED: "AI quizzes are not configured yet.",
-            AI_TIMEOUT: "The AI request took too long.",
-            AI_DISABLED: "AI quizzes are switched off.",
-            UNAUTHENTICATED: "Your sign-in has expired.",
-          }[code] || "The AI quiz could not be generated.";
-        localQuiz(`${reason} A standard quiz is ready below.`);
-        return;
+        if (!code && error.context?.status === 401) code = "UNAUTHENTICATED";
+        throw new Error(
+          failureMessages[code] ||
+            "The AI quiz could not be generated. Try again, or choose a standard quiz.",
+        );
       }
-      const built = buildQuizSession(data, cards);
+      if (data?.items?.some((item) => !item?.format)) {
+        throw new Error(
+          "The AI quiz service needs updating to match this version of LinguaLoop.",
+        );
+      }
+      const questions = buildQuizSession(data, cards);
       if (
-        !built ||
+        !questions ||
         data.source !== "openai" ||
         typeof data.focusTitle !== "string" ||
         typeof data.sessionReason !== "string"
       ) {
-        localQuiz(
-          "The quiz response could not be checked. A standard quiz is ready instead.",
-        );
-        return;
+        throw new Error(failureMessages.INVALID_AI_OUTPUT);
       }
-      setPlan(data);
-      setQuestions(built);
-    } catch {
-      localQuiz(
-        "The AI request could not finish. A standard quiz is ready instead.",
-      );
+      setRound({ id, plan: data, questions });
+    } catch (error) {
+      if (activeRequest.current?.id !== id) return;
+      setFailure({
+        id,
+        message: controller.signal.aborted
+          ? failureMessages.AI_TIMEOUT
+          : error.message ||
+            "The AI request could not finish. Please try again.",
+      });
     } finally {
-      busy.current = false;
-      setLoading(false);
+      if (activeRequest.current?.id === id) {
+        activeRequest.current = null;
+        setLoading(false);
+      }
     }
   }
-  if (started && plan && questions)
+
+  if (roundId && round?.id === roundId && round.questions) {
     return (
       <QuizSession
+        key={roundId}
         {...props}
-        plan={plan}
-        questions={questions}
-        onNewQuiz={() => {
-          setStarted(false);
-          setPlan(null);
-          setQuestions(null);
-          setMessage(null);
-        }}
+        plan={round.plan}
+        questions={round.questions}
+        onNewQuiz={chooseLevel}
       />
     );
+  }
+
+  if (roundId) {
+    const failed = failure?.id === roundId;
+    return (
+      <section className="lesson-shell generated-quiz-page">
+        <div className="lesson-topbar">
+          <button
+            type="button"
+            className="back-link back-link--button"
+            onClick={chooseLevel}
+          >
+            ← Quiz setup
+          </button>
+          <span>{unit.title}</span>
+        </div>
+        <div className="generated-quiz-status" aria-busy={loading}>
+          <span className="ai-coach-orb">
+            <AppIcon name="spark" size={32} />
+          </span>
+          <p className="eyebrow">AI Quiz</p>
+          <h1 ref={heading} tabIndex={-1}>
+            {loading
+              ? "Making your quiz"
+              : failed
+                ? "Your quiz couldn’t be created"
+                : "Start a new quiz"}
+          </h1>
+          <p role={failed ? "alert" : "status"}>
+            {loading
+              ? "Creating five questions from your course. This can take a few moments."
+              : failed
+                ? failure.message
+                : "This quiz is no longer loaded. Choose a level and start a new round."}
+          </p>
+          {!loading && (
+            <div className="ai-coach-actions">
+              {failed && aiEnabled && (
+                <button
+                  type="button"
+                  className="button button--primary"
+                  onClick={() => openQuiz(true)}
+                >
+                  Try AI Quiz again
+                </button>
+              )}
+              {failed && (
+                <button
+                  type="button"
+                  className="button button--outline"
+                  onClick={() => openQuiz(false)}
+                >
+                  Start a standard quiz
+                </button>
+              )}
+              {!failed && (
+                <button
+                  type="button"
+                  className="button button--primary"
+                  onClick={chooseLevel}
+                >
+                  Choose quiz level
+                </button>
+              )}
+            </div>
+          )}
+          {loading && (
+            <button
+              type="button"
+              className="button button--outline"
+              onClick={chooseLevel}
+            >
+              Cancel
+            </button>
+          )}
+        </div>
+      </section>
+    );
+  }
+
   return (
-    <section className="lesson-shell">
+    <section className="lesson-shell generated-quiz-page">
       <div className="lesson-topbar">
         <button
           type="button"
@@ -110,117 +238,54 @@ export default function GeneratedQuiz(props) {
           <AppIcon name="spark" size={32} />
         </span>
         <p className="eyebrow">AI Quiz</p>
-        <h1>Generate a practice quiz</h1>
-        <p>
-          AI builds questions around this course’s phrases. Choose your level,
-          then put what you know into a new context.
-        </p>
+        <h1 ref={heading} tabIndex={-1}>
+          Generate a practice quiz
+        </h1>
+        <p>Choose a level, then start a quiz based on your course’s phrases.</p>
       </header>
       <div className="ai-levels" aria-label="Quiz difficulty">
-        {QUIZ_LEVELS.map((l) => (
+        {QUIZ_LEVELS.map((option) => (
           <button
             type="button"
-            key={l.id}
-            onClick={() => {
-              setLevel(l.id);
-              setPlan(null);
-            }}
-            aria-pressed={level === l.id}
-            disabled={loading}
+            key={option.id}
+            onClick={() =>
+              setParams({ activity: "ai", level: option.id }, { replace: true })
+            }
+            aria-pressed={level === option.id}
           >
-            <strong>{l.label}</strong>
-            <span>{l.text}</span>
+            <strong>{option.label}</strong>
+            <span>{option.text}</span>
           </button>
         ))}
       </div>
       {!aiEnabled && (
-        <p className="notice">
+        <p className="ai-coach-notice">
           AI Quiz is off. <Link to="/settings">Enable it in Settings</Link>, or
-          try a standard quiz below.
+          start a standard quiz.
         </p>
       )}
-      {message && (
-        <p className="notice" role="status">
-          {message}
-        </p>
-      )}
-      {plan ? (
-        <div className="ai-plan-card">
-          <div className="ai-plan-card__label">
-            {plan.source === "openai"
-              ? "YOUR AI-GENERATED QUIZ"
-              : "STANDARD QUIZ · NO AI USED"}
-          </div>
-          <h2 style={{ marginTop: 12 }}>{plan.focusTitle}</h2>
-          <p className="muted small" style={{ marginTop: 12 }}>
-            {plan.sessionReason}
-          </p>
-          <ol>
-            {plan.items.map((item, i) => (
-              <li key={item.conceptId}>
-                <span>0{i + 1}</span>
-                <div>
-                  <strong>
-                    {item.format === "write"
-                      ? "Write from memory"
-                      : item.format === "meaning"
-                        ? "Find the meaning"
-                        : "Choose the phrase"}
-                  </strong>
-                  <small>
-                    {item.difficulty === "challenge"
-                      ? "Written recall"
-                      : item.difficulty === "standard"
-                        ? "Four choices"
-                        : "Two choices"}
-                  </small>
-                </div>
-              </li>
-            ))}
-          </ol>
-          <div className="ai-plan-card__actions">
-            <button
-              className="button button--primary"
-              onClick={() => setStarted(true)}
-            >
-              Start quiz <AppIcon name="arrow" size={17} />
-            </button>
-            {aiEnabled && (
-              <button
-                className="button button--outline"
-                onClick={generate}
-                disabled={loading}
-              >
-                {loading ? "Generating…" : "Generate a different quiz"}
-              </button>
-            )}
-          </div>
-        </div>
-      ) : (
-        <div className="ai-coach-actions">
-          {aiEnabled && (
-            <button
-              className="button button--primary"
-              onClick={generate}
-              disabled={loading}
-            >
-              <AppIcon name="spark" size={17} />
-              {loading ? "Making your quiz…" : "Generate my quiz"}
-            </button>
-          )}
+      <div className="ai-coach-actions">
+        {aiEnabled && (
           <button
-            className="button button--outline"
-            disabled={loading}
-            onClick={() => localQuiz(null)}
+            type="button"
+            className="button button--primary"
+            onClick={() => openQuiz(true)}
           >
-            Try a standard quiz
+            <AppIcon name="spark" size={17} />
+            Generate my quiz
           </button>
-        </div>
-      )}
+        )}
+        <button
+          type="button"
+          className="button button--outline"
+          onClick={() => openQuiz(false)}
+        >
+          Try a standard quiz
+        </button>
+      </div>
       <p className="lesson-help">
-        AI creates the question wording and situations; answers stay tied to
-        your course. Questions may occasionally repeat or need clarification.
-        Smart Review is available in Practice for revisiting mistakes.
+        AI writes the situations and hints. Answers use the phrases taught in
+        your course. Questions may occasionally repeat.
       </p>
     </section>
   );
